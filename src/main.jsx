@@ -13,7 +13,7 @@ const PX_PER_IN = 96;
 const PAGE_W_PX = PAGE_W_IN * PX_PER_IN;
 const PAGE_H_PX = PAGE_H_IN * PX_PER_IN;
 // Elements a page break should never cut through — mirrors the print stylesheet's break-inside:avoid list.
-const AVOID_SPLIT_SELECTOR = '.tilt-card, .verdict-col, .rationale-card, .leak-row, .leak-row-pair, .confirmed-banner, .survey-flow article, .matrix, .cut-grid, .verdict-grid, .rationale-grid, h1, h2, h3';
+const AVOID_SPLIT_SELECTOR = '.tilt-card, .verdict-col, .rationale-card, .leak-row, .leak-row-pair, .confirmed-banner, .survey-flow article, .matrix, .cut-grid, .verdict-grid, .rationale-grid, .primary-leak-hero, .executive-leak, .query-inventory, .method-notes, h1, h2, h3, p, blockquote';
 
 // html2canvas's CSS parser can't read the modern color(srgb ...) syntax that
 // Chromium serializes color-mix() into (used throughout this stylesheet's tags/
@@ -82,9 +82,22 @@ function computeBreakOffsets(node) {
     const r = el.getBoundingClientRect();
     return { top: r.top - rect0.top, bottom: r.bottom - rect0.top };
   });
+  // When a protected block straddles the intended cut, jumping back to its top
+  // is only one option — jumping forward to its bottom (keeping the whole block
+  // on the earlier page) is often the better-balanced choice, e.g. a wide
+  // sidebar card straddling the halfway point of a section: snapping back
+  // strands almost everything on the second page, while snapping forward past
+  // it often lands both resulting pages comfortably under budget. Pick
+  // whichever safe boundary is closer to the target and still fits its page.
   const snapToSafeBoundary = (cursor, cut) => {
     const hit = candidates.find((c) => cut > c.top + 4 && cut < c.bottom - 4);
-    return hit && hit.top > cursor + 40 ? hit.top : cut;
+    if (!hit) return cut;
+    const canBackward = hit.top > cursor + 40;
+    const canForward = hit.bottom <= cursor + PAGE_H_PX && hit.bottom > cursor + 40;
+    if (canForward && canBackward) return Math.abs(hit.bottom - cut) < Math.abs(cut - hit.top) ? hit.bottom : hit.top;
+    if (canForward) return hit.bottom;
+    if (canBackward) return hit.top;
+    return cut;
   };
   const pageCount = Math.ceil(total / PAGE_H_PX);
   const offsets = [0];
@@ -1031,30 +1044,52 @@ function App() {
         // which used to make content-heavy slides look zoomed out next to short ones.
         const canvasScale = fullCanvas.width / PAGE_W_PX;
         for (let i = 0; i < offsets.length - 1; i++) {
-          const sy = Math.round(offsets[i] * canvasScale);
-          const sh = Math.min(Math.round((offsets[i + 1] - offsets[i]) * canvasScale), fullCanvas.height - sy);
+          // A cut that lands exactly on a border (e.g. a card's bottom edge) can
+          // have that border row rounded onto both sides of the split — the same
+          // hairline appearing as the last row of one page and the first row of
+          // the next. Nudging every non-first slice's start past it drops one
+          // duplicate, invisible row instead of showing a stray line.
+          const bleedGuard = i > 0 ? 2 : 0;
+          const sy = Math.round(offsets[i] * canvasScale) + bleedGuard;
+          const sh = Math.min(Math.round((offsets[i + 1] - offsets[i]) * canvasScale) - bleedGuard, fullCanvas.height - sy);
+          // Every page canvas is the full physical page height, background baked
+          // in, even when its content is shorter — so the PDF page is always one
+          // single image. A shorter page used to end partway down and hand off to
+          // a separately-drawn fill rectangle for the rest: two different PDF
+          // draw operations meeting at a hard edge, which is exactly where some
+          // viewers render a stray hairline (invisible in the source JPEG itself,
+          // so it never showed up checking that).
           const pageCanvas = document.createElement('canvas');
           pageCanvas.width = fullCanvas.width;
-          pageCanvas.height = sh;
+          pageCanvas.height = Math.round(PAGE_H_PX * canvasScale);
           const ctx = pageCanvas.getContext('2d');
           ctx.fillStyle = bg;
           ctx.fillRect(0, 0, pageCanvas.width, pageCanvas.height);
-          ctx.drawImage(fullCanvas, 0, sy, fullCanvas.width, sh, 0, 0, fullCanvas.width, sh);
-          pages.push({ canvas: pageCanvas, canvasScale });
+          // A page shorter than the full budget (the tail end of a section that
+          // spilled onto an extra page, e.g. the appendix) used to sit pinned to
+          // the top with all the slack dumped below it as a band of bare page
+          // background under the last card — center it in the page instead so
+          // the leftover space reads as intentional margin, not a leftover gap.
+          const dy = Math.round((pageCanvas.height - sh) / 2);
+          ctx.drawImage(fullCanvas, 0, sy, fullCanvas.width, sh, 0, dy, fullCanvas.width, sh);
+          pages.push({ canvas: pageCanvas, canvasScale, contentBottom: dy + sh });
         }
       }
 
-      // A page number only ever gets drawn into a corner that's actually empty in
-      // that page's own capture — a slice can end anywhere in the flow, so unlike
-      // the on-screen tag (which always sits in a section's own reserved bottom
-      // padding) there's no guarantee the bottom-right corner is free.
-      function cornerIsBlank(ctx, w, h) {
-        const x = Math.max(0, w - 230);
-        const y = Math.max(0, h - 46);
-        const cw = Math.min(230, w);
-        const ch = Math.min(46, h);
-        if (cw <= 0 || ch <= 0) return false;
-        const { data } = ctx.getImageData(x, y, cw, ch);
+      // A page number only ever gets drawn where it's actually empty in that
+      // page's own capture — a slice can end anywhere in the flow, so unlike the
+      // on-screen tag (which always sits in a section's own reserved bottom
+      // padding) there's no guarantee the corner it would land in is free. Checks
+      // the exact box the text is about to occupy, not just "the corner" — a
+      // fixed guess window can sit above or beside the real text and miss content
+      // right behind it.
+      function isRegionBlank(ctx, x, y, w, h) {
+        x = Math.max(0, Math.round(x));
+        y = Math.max(0, Math.round(y));
+        w = Math.min(Math.round(w), ctx.canvas.width - x);
+        h = Math.min(Math.round(h), ctx.canvas.height - y);
+        if (w <= 0 || h <= 0) return false;
+        const { data } = ctx.getImageData(x, y, w, h);
         for (let i = 0; i < data.length; i += 4 * 23) {
           if (Math.abs(data[i] - bgR) > 12 || Math.abs(data[i + 1] - bgG) > 12 || Math.abs(data[i + 2] - bgB) > 12) return false;
         }
@@ -1062,21 +1097,36 @@ function App() {
       }
 
       const doc = new jsPDF({ unit: 'in', format: [PAGE_W_IN, PAGE_H_IN], orientation: 'landscape' });
-      pages.forEach(({ canvas, canvasScale }, idx) => {
+      pages.forEach(({ canvas, canvasScale, contentBottom }, idx) => {
         const ctx = canvas.getContext('2d');
-        if (cornerIsBlank(ctx, canvas.width, canvas.height)) {
+        const label = `PAGE ${String(idx + 1).padStart(2, '0')} / ${String(pages.length).padStart(2, '0')}`;
+        const fontPx = 10 * canvasScale;
+        ctx.font = `${fontPx}px 'DM Mono', monospace`;
+        const textW = ctx.measureText(label).width;
+        const padX = 10 * canvasScale;
+        const padY = 8 * canvasScale;
+        const rightX = canvas.width - 42 * canvasScale;
+        // Sits just above the content's own bottom edge, not the page's — a page
+        // shorter than the budget is now centered rather than pinned to the top,
+        // so anchoring to the fixed page bottom could land the label inside the
+        // top-heavy margin above short content instead of just past it.
+        const baselineY = Math.min(canvas.height - 30 * canvasScale, contentBottom - 30 * canvasScale);
+        const boxX = rightX - textW - padX;
+        const boxY = baselineY - fontPx - padY;
+        const boxW = textW + padX * 2;
+        const boxH = fontPx + padY * 2;
+        if (isRegionBlank(ctx, boxX, boxY, boxW, boxH)) {
           ctx.fillStyle = `rgb(${muR}, ${muG}, ${muB})`;
-          ctx.font = `${10 * canvasScale}px 'DM Mono', monospace`;
           ctx.textAlign = 'right';
           ctx.textBaseline = 'alphabetic';
-          ctx.fillText(`PAGE ${String(idx + 1).padStart(2, '0')} / ${String(pages.length).padStart(2, '0')}`, canvas.width - 42 * canvasScale, canvas.height - 30 * canvasScale);
+          ctx.fillText(label, rightX, baselineY);
         }
 
         if (idx > 0) doc.addPage([PAGE_W_IN, PAGE_H_IN], 'landscape');
-        doc.setFillColor(bgR, bgG, bgB);
-        doc.rect(0, 0, PAGE_W_IN, PAGE_H_IN, 'F');
-        const renderH = Math.min(canvas.height / canvasScale / PX_PER_IN, PAGE_H_IN);
-        doc.addImage(canvas.toDataURL('image/jpeg', 0.92), 'JPEG', 0, 0, PAGE_W_IN, renderH);
+        // The canvas is already the full page height with background baked in
+        // (see above), so this image alone covers the entire page — no separate
+        // fill rect underneath it to form a seam against.
+        doc.addImage(canvas.toDataURL('image/jpeg', 0.92), 'JPEG', 0, 0, PAGE_W_IN, PAGE_H_IN);
       });
       doc.save('Northbank-slide-deck.pdf');
     } finally {

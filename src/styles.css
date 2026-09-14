@@ -560,7 +560,20 @@ p.chart-caption { color: var(--muted); font-size: 12px; margin: 8px 0 0; }
 
 /* ============================= matrix ============================= */
 
-.matrix-layout { display: grid; grid-template-columns: 1fr 320px; gap: 28px; }
+/* Three grid children (summary, matrix, list) in a 2-column grid with no explicit
+   placement auto-flow as summary+matrix sharing row 1, then list wrapping alone
+   onto row 2 — leaving a large empty cell next to it and inflating the section's
+   height. Pin them explicitly: summary spans the full width above, matrix and
+   list share the row below. */
+.matrix-layout {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  grid-template-areas: "summary summary" "list matrix";
+  gap: 28px;
+}
+.matrix-summary { grid-area: summary; }
+.matrix-list { grid-area: list; }
+.matrix { grid-area: matrix; }
 .matrix { height: 560px; border: 1px solid var(--rule); background: var(--panel); position: relative; background-image: linear-gradient(var(--rule) 1px, transparent 1px), linear-gradient(90deg, var(--rule) 1px, transparent 1px); background-size: 50% 50%; }
 .axis { position: absolute; font: 10px 'DM Mono', monospace; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
 .axis span { color: var(--lime); }
@@ -743,7 +756,7 @@ footer a { color: var(--muted); }
   /* A section that doesn't fit one 7.5in page spills onto a second rather than
      getting clipped — every section still starts its own fresh page via break-after.
      Individual cards avoid being sliced across that spill point. */
-  .tilt-card, .verdict-col, .rationale-card, .leak-row, .leak-row-pair, .confirmed-banner, .survey-flow article {
+  .tilt-card, .verdict-col, .rationale-card, .leak-row, .leak-row-pair, .confirmed-banner, .survey-flow article, .primary-leak-hero, .executive-leak, .query-inventory, .method-notes, p, blockquote {
     break-inside: avoid;
     page-break-inside: avoid;
   }
@@ -821,6 +834,80 @@ footer a { color: var(--muted); }
 [data-exporting="true"][data-view="slides"] #funnel .leak-name small,
 [data-exporting="true"][data-view="slides"] #funnel .drop-badge { display: none; }
 [data-exporting="true"][data-view="slides"] #funnel .flow-hint { margin-top: 6px; }
+
+/* Question dividers were "spilling" onto a second export page despite visibly
+   fitting one — .question:before's decorative wash sits at inset:-20% -10%,
+   and even though .question clips it (overflow:hidden) so none of that
+   overflow ever paints, scrollHeight still counts it: a purely invisible
+   144px of phantom height was tricking the splitter into thinking the section
+   overflowed. Pinning the pseudo-element inside its box removes exactly the
+   part that was already invisible — no visual change, just an honest height. */
+[data-exporting="true"][data-view="slides"] .question:before { inset: 0; }
+
+/* The verdict/opportunities/survey/roadmap/rationale slides and the appendix
+   comfortably fit one export page's worth of content once their reading-view
+   spacing (built for a leisurely scroll) is tightened — same idea as #funnel
+   and #overview above, just lower-stakes since these sections don't lose any
+   element to hiding, only breathing room. */
+
+[data-exporting="true"][data-view="slides"] #verdict .slide-head { margin-bottom: 20px; }
+[data-exporting="true"][data-view="slides"] #verdict .verdict-col { padding: 14px; }
+[data-exporting="true"][data-view="slides"] #verdict .verdict-col-head { margin-bottom: 6px; }
+[data-exporting="true"][data-view="slides"] #verdict .verdict-item { padding: 6px 0; }
+
+[data-exporting="true"][data-view="slides"] #opportunities .slide-head { margin-bottom: 16px; }
+[data-exporting="true"][data-view="slides"] #opportunities .opportunity-frame { gap: 14px; }
+[data-exporting="true"][data-view="slides"] #opportunities .primary-leak-hero { min-height: 0; padding: 10px; }
+[data-exporting="true"][data-view="slides"] #opportunities .primary-leak-hero h3 { margin-top: 8px; font-size: 22px; }
+[data-exporting="true"][data-view="slides"] #opportunities .primary-leak-hero > p { margin-top: 8px; }
+[data-exporting="true"][data-view="slides"] #opportunities .secondary-leaks { gap: 6px; }
+[data-exporting="true"][data-view="slides"] #opportunities .executive-leak { padding: 6px 12px; }
+[data-exporting="true"][data-view="slides"] #opportunities .executive-leak h3 { margin-top: 3px; font-size: 20px; }
+[data-exporting="true"][data-view="slides"] #opportunities .executive-takeaway { margin-top: 10px; padding: 8px 12px; }
+[data-exporting="true"][data-view="slides"] #opportunities .executive-takeaway p { font-size: 17px; }
+[data-exporting="true"][data-view="slides"] #opportunities .opportunity-source { margin-top: 6px; }
+[data-exporting="true"][data-view="slides"] #opportunities .verification-stat { padding-top: 16px; }
+[data-exporting="true"][data-view="slides"] #opportunities .verification-stat b { font-size: 56px; }
+[data-exporting="true"][data-view="slides"] #opportunities .verification-stat span { margin-top: 6px; }
+[data-exporting="true"][data-view="slides"] #opportunities .verification-proof { margin-top: 12px; }
+[data-exporting="true"][data-view="slides"] #opportunities .primary-loss-visual { margin-top: 12px; }
+
+[data-exporting="true"][data-view="slides"] #survey { padding: 26px 60px !important; }
+[data-exporting="true"][data-view="slides"] #survey .slide-head { margin-bottom: 6px; }
+[data-exporting="true"][data-view="slides"] #survey .survey-flow { margin-top: 4px; }
+[data-exporting="true"][data-view="slides"] #survey .survey-flow article { min-height: 0; padding: 6px 10px; }
+[data-exporting="true"][data-view="slides"] #survey .survey-flow b { font-size: 20px; margin: 3px 0 2px; }
+[data-exporting="true"][data-view="slides"] #survey .survey-flow p { margin-top: 6px; font-size: 13px; }
+[data-exporting="true"][data-view="slides"] #survey .survey-insight { margin-top: 6px; }
+[data-exporting="true"][data-view="slides"] #survey .survey-flow blockquote { margin-top: 6px; font-size: 12px; }
+[data-exporting="true"][data-view="slides"] #survey .survey-synthesis { margin-top: 6px; padding: 8px 12px; }
+[data-exporting="true"][data-view="slides"] #survey .survey-synthesis p { font-size: 13.5px; margin-top: 4px; }
+[data-exporting="true"][data-view="slides"] #survey .survey-foot { margin-top: 6px; }
+
+[data-exporting="true"][data-view="slides"] #roadmap .slide-head { margin-bottom: 14px; }
+[data-exporting="true"][data-view="slides"] #roadmap .matrix-layout { gap: 12px; }
+[data-exporting="true"][data-view="slides"] #roadmap .matrix-summary { margin-bottom: 4px; font-size: 13px; }
+[data-exporting="true"][data-view="slides"] #roadmap .matrix { height: 320px; }
+[data-exporting="true"][data-view="slides"] #roadmap .matrix-list button { padding: 5px 8px; }
+[data-exporting="true"][data-view="slides"] #roadmap .initiative-detail { display: none; }
+
+[data-exporting="true"][data-view="slides"] #rationale .slide-head { margin-bottom: 20px; }
+[data-exporting="true"][data-view="slides"] #rationale .rationale-card { padding: 16px; }
+[data-exporting="true"][data-view="slides"] #rationale .rationale-card-head { margin-bottom: 8px; }
+[data-exporting="true"][data-view="slides"] #rationale .rationale-row { padding: 7px 0; }
+
+[data-exporting="true"][data-view="slides"] #appendix .slide-head { margin-bottom: 20px; }
+[data-exporting="true"][data-view="slides"] #appendix .caveats { gap: 10px; }
+[data-exporting="true"][data-view="slides"] #appendix .appendix-note { margin-top: 10px; }
+[data-exporting="true"][data-view="slides"] #appendix .query-inventory { padding: 16px; }
+[data-exporting="true"][data-view="slides"] #appendix .method-notes { padding: 14px; gap: 10px 22px; margin-top: 20px !important; }
+[data-exporting="true"][data-view="slides"] #appendix .method-notes article { padding-top: 10px; }
+/* .method-notes was only one of three cards stacked inside .appendix-provenance
+   (query map and tools-used follow it) — those two keep their reading-view
+   margins/padding if not tightened too, which is what was actually leaving a
+   few hundred px of unexplained gap below the working notes card. */
+[data-exporting="true"][data-view="slides"] #appendix .method-map { margin-top: 14px; padding: 10px; gap: 6px 18px; }
+[data-exporting="true"][data-view="slides"] #appendix .tools-used { margin-top: 8px; padding: 8px 12px; gap: 8px; }
 
 @media (prefers-reduced-motion: reduce) {
   *, *:before, *:after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; }
