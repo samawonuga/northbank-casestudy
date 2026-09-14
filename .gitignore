@@ -1,0 +1,13 @@
+# Dependencies and generated production output
+node_modules/
+dist/
+
+# Local Vercel project state
+.vercel/
+
+# Secrets and machine-specific files
+.env
+.env.*
+!.env.example
+.DS_Store
+*.log
