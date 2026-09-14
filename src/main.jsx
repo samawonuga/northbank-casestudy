@@ -231,13 +231,13 @@ const THEME_LABELS = {
 
 const INITIATIVES = [
   { n: '01', title: 'Extend settlement verification coverage', evidence: 'Confirmed failure state · close in parallel with upstream conversion work', feedback: '“I had no idea what a settlement letter was or where to get one.”', quadrant: 'Plan', group: 'platform', x: 71, y: 20 },
-  { n: '02', title: 'Put a floor under offer value', evidence: 'Funnel + survey · improve value alongside offer-reach work', feedback: '“Lower monthly but a longer term” does not feel like a saving.', quadrant: 'Plan', group: 'proposition', x: 70, y: 42 },
+  { n: '02', title: 'Set a minimum value floor', evidence: 'Funnel + survey · improve value alongside offer-reach work', feedback: '“Lower monthly but a longer term” does not feel like a saving.', quadrant: 'Plan', group: 'proposition', x: 70, y: 42 },
   { n: '03', title: 'Expand push eligibility, test new channels', evidence: 'Funnel · largest volume opportunity', quadrant: 'Do now', group: 'growth', x: 25, y: 33 },
   { n: '04', title: 'Simplify and pre-fill the application', evidence: 'Funnel + survey · largest in-app drop', feedback: '“Started the application but it was taking too long so I left it.”', quadrant: 'Plan', group: 'experience', x: 64, y: 57 },
   { n: '05', title: 'Support during the settlement wait', evidence: 'Funnel + survey · low build cost', feedback: 'Customers describe waiting on the old lender as being left without a next step.', quadrant: 'Do now', group: 'experience', x: 31, y: 68 },
   { n: '06', title: 'Pilot an assisted / callback option', evidence: 'Survey only · contained pilot', feedback: '“It’s a big decision; I wanted a human, not an app.”', quadrant: 'Fill-in', group: 'service', x: 24, y: 76 },
   { n: '07', title: 'Manage re-offer frequency', evidence: 'Funnel · reduce repeat contact before scaling reach', feedback: 'For some, the offer arrives too late: “I’m almost done paying it off.”', quadrant: 'Do now', group: 'growth', x: 28, y: 49 },
-  { n: '08', title: 'Run push and offer-value experiments', evidence: 'Enabling · measures causal effect while other work starts', quadrant: 'Plan', group: 'platform', x: 76, y: 64 },
+  { n: '08', title: 'Test offer design by cohort', evidence: 'Funnel + survey · experiment with APR, term and value framing across customer segments', feedback: '“Lower monthly but a longer term” does not feel like a saving.', quadrant: 'Plan', group: 'proposition', x: 76, y: 64 },
 ];
 
 const RATIONALE = [
@@ -257,10 +257,10 @@ const RATIONALE = [
   },
   {
     name: 'Offer value',
-    feel: 'A longer term to get a lower payment — and more paid overall.',
+    feel: 'A lower monthly payment can feel like a saving even when the total cost is higher.',
     data: 'View-to-apply 27.8% with a saving, 5.3% without. 38.4% of offers raise total cost.',
-    assumption: 'Assumes the saving drives the uplift, not keener customers. Test: A/B a minimum-saving threshold.',
-    capability: 'Offer eligibility engine — saving thresholds and term caps as rules, not display copy.',
+    assumption: 'Assumes customers respond to monthly affordability as much as total cost. Test: A/B minimum-saving thresholds and clearer value framing.',
+    capability: 'Offer eligibility engine — saving thresholds, term caps and value framing tuned by cohort, not just display copy.',
   },
   {
     name: 'Application completion',
@@ -497,7 +497,7 @@ function Overview() {
       <SectionHead
         eyebrow="Q1 · Funnel review"
         title="The funnel works after people engage. Most of the drop-off happens before they even open the offer."
-        dek="2.3% of offers become loans. The product works after engagement. The main bottlenecks are reach, value and completion."
+        dek="2.3% of offers become loans. The main bottlenecks are reach, value and completion."
       />
       <p className="provenance-note">Every <span>SQL</span>-tagged figure links to its source query — see <a href="#appendix">Method</a>.</p>
       <Reveal>
@@ -587,7 +587,7 @@ function Verdict() {
       <SectionHead
         eyebrow="Q1 · Verdict"
         title="Most of the loss happens before the application."
-        dek="Offer reach is the largest observed leak, then offer value. Settlement verification is a confirmed hard stop for a smaller cohort."
+        dek="Offer reach is the largest observed leak. Offer value is the next biggest issue. Settlement verification is a confirmed hard stop for a smaller group."
       />
       <div className="verdict-grid">
         <Reveal className="verdict-col good">
@@ -735,7 +735,7 @@ function OpportunityCuts() {
       <SectionHead
         eyebrow="Q1 · Opportunities"
         title="Most conversion is lost before people apply."
-        dek="Offer reach is the largest observed leak, and settlement verification is a confirmed hard stop for a smaller cohort."
+        dek="Reach is the biggest leak. Verification is a confirmed blocker for a smaller cohort."
       />
       <div className="opportunity-frame">
         <Reveal className="primary-leak-hero">
@@ -775,7 +775,7 @@ function OpportunityCuts() {
           </Reveal>
         </div>
       </div>
-      <div className="executive-takeaway"><span>Takeaway</span><p>Improve offer reach and value first, then close the verification gap in parallel.</p></div>
+      <div className="executive-takeaway"><span>Takeaway</span><p>Fix reach and value first. Close the verification gap in parallel.</p></div>
       <p className="opportunity-source">Evidence: funnel events, lender-verification investigation, channel effectiveness, offer economics and repeat-offer analysis. <a href="#appendix">See method and queries</a>.</p>
       {active && (
         <Modal eyebrow={active.eyebrow} title={active.title} tag={active.confirmed ? <ConfidenceTag confirmed /> : <ConfidenceTag />} onClose={() => setExpanded(null)}>
@@ -812,7 +812,7 @@ function Survey() {
           </Reveal>
         ))}
       </div>
-      <div className="survey-synthesis"><b>The synthesis</b><p>These are four needs, not one “non-converter” group: clearer value, reassurance, less effort, or help with an external lender. Customers are not just comparing total cost; they are also comparing monthly payment, term length, and what feels affordable now.</p></div>
+      <div className="survey-synthesis"><b>The synthesis</b><p>These are four needs, not one “non-converter” group: clearer value, reassurance, less effort, and help with an external lender. Customers are weighing monthly payment and term length as much as total cost.</p></div>
       <p className="survey-foot">300 comments coded by theme. Customer modes can overlap; read alongside the funnel evidence. <Evidence method="two-pass survey theme coding">300 free-text responses were coded separately by <code>user_id</code>; themes can overlap and are not SQL-derived percentages.</Evidence></p>
     </section>
   );
@@ -827,7 +827,7 @@ function Matrix() {
       <SectionHead
         eyebrow="Q3 · Next-quarter initiatives"
         title="Eight recommendations, prioritised by impact, effort and evidence."
-        dek="Priority order: fix reach first, then value, then completion. Close the verification gap in parallel because it is a confirmed blocker for a smaller cohort."
+        dek="Priority order: fix reach first, then value, then completion. Verification should run in parallel because it is a confirmed blocker for a smaller cohort."
       />
       <Reveal className="matrix-layout">
         <p className="matrix-summary">We should start with the problems that create the most lost volume: reach, then value, then completion. Verification is a hard-stop fix that should run in parallel.</p>
