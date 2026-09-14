@@ -131,6 +131,8 @@ nav {
 .download:hover { transform: translateY(-1px); filter: brightness(1.07); box-shadow: 0 8px 18px color-mix(in srgb, var(--lime) 40%, transparent); }
 .download:active { transform: translateY(0); }
 .deck-download:disabled { opacity: .55; cursor: progress; pointer-events: none; }
+.spin { animation: spin .8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
 .view-btn { border: none !important; border-radius: 3px; background: var(--panel2) !important; padding: 7px 10px !important; }
 .view-btn[aria-pressed="true"] { background: color-mix(in srgb, var(--lime) 14%, transparent) !important; color: var(--lime) !important; }
 .deck-download {
@@ -741,7 +743,7 @@ footer a { color: var(--muted); }
   /* A section that doesn't fit one 7.5in page spills onto a second rather than
      getting clipped — every section still starts its own fresh page via break-after.
      Individual cards avoid being sliced across that spill point. */
-  .tilt-card, .verdict-col, .rationale-card, .leak-row, .confirmed-banner, .survey-flow article {
+  .tilt-card, .verdict-col, .rationale-card, .leak-row, .leak-row-pair, .confirmed-banner, .survey-flow article {
     break-inside: avoid;
     page-break-inside: avoid;
   }
@@ -756,17 +758,34 @@ footer a { color: var(--muted); }
    itself (a real one-click download, not the browser's print dialog) — same rules
    as @media print above, in px instead of in since nothing here is being printed. */
 [data-exporting="true"] .loader,
-[data-exporting="true"] nav,
 [data-exporting="true"] .progress-rail,
 [data-exporting="true"] .toc-rail,
 [data-exporting="true"] .expand-btn,
 [data-exporting="true"] .evidence-tip,
 [data-exporting="true"] footer { display: none !important; }
+/* nav stays visible during export (it's a sibling of the captured .cover/.slide/
+   .question nodes, so it never ends up in the canvas either way) so the "Slide PDF"
+   button can actually show its downloading state instead of vanishing with the rest
+   of the chrome. */
 [data-exporting="true"] .reveal { opacity: 1 !important; transform: none !important; }
 [data-exporting="true"] .initiative { opacity: 1 !important; }
 [data-exporting="true"] *, [data-exporting="true"] *::before, [data-exporting="true"] *::after {
   animation: none !important; transition: none !important;
 }
+/* .leak-bar i and .q-line i start scaleX(0) and only reach scaleX(1) once their
+   row/section has actually scrolled into view (an IntersectionObserver adds the
+   "in" class) — export captures a section's own DOM node directly without ever
+   scrolling it into the browser viewport, so that observer never fires and these
+   bars render empty. Force their revealed end-state for export specifically. */
+[data-exporting="true"] .leak-bar i,
+[data-exporting="true"] .q-line i { transform: scaleX(1) !important; }
+[data-exporting="true"] nav .spin { animation: spin .8s linear infinite !important; }
+/* The on-screen "Page NN" tag counts sections, not physical PDF pages, so a
+   section that spills onto extra pages leaves it wrong or missing on most of
+   them — downloadSlideDeck() stamps its own accurate one per physical page instead. */
+[data-exporting="true"][data-view="slides"] .cover > div::after,
+[data-exporting="true"][data-view="slides"] .slide::after,
+[data-exporting="true"][data-view="slides"] .question::after { display: none !important; }
 [data-exporting="true"].app[data-view="slides"] { padding: 0 !important; }
 [data-exporting="true"][data-view="slides"] .cover,
 [data-exporting="true"][data-view="slides"] .slide,
@@ -791,6 +810,17 @@ footer a { color: var(--muted); }
 [data-exporting="true"][data-view="slides"] #overview .tilt-card { padding: 20px; }
 [data-exporting="true"][data-view="slides"] #overview .tilt-card b { margin: 18px 0 8px; font-size: 48px; }
 [data-exporting="true"][data-view="slides"] #overview .business-line b { padding: 18px 20px; }
+
+/* The funnel table's per-row notes are worth the extra height in the reading
+   view, but they're what pushes this section past one export page — compact
+   it for export only, closer to the one-slide funnel table this deck used
+   before the React rebuild. */
+[data-exporting="true"][data-view="slides"] #funnel .slide-head { margin-bottom: 16px; }
+[data-exporting="true"][data-view="slides"] #funnel .leak-legend { margin: -4px 0 10px; }
+[data-exporting="true"][data-view="slides"] #funnel .leak-row { padding: 6px 0; }
+[data-exporting="true"][data-view="slides"] #funnel .leak-name small,
+[data-exporting="true"][data-view="slides"] #funnel .drop-badge { display: none; }
+[data-exporting="true"][data-view="slides"] #funnel .flow-hint { margin-top: 6px; }
 
 @media (prefers-reduced-motion: reduce) {
   *, *:before, *:after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; }

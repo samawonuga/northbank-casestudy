@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
-import { Maximize2, X, Download, Sun, Moon, ArrowRight, ArrowUp } from 'lucide-react';
+import { Maximize2, X, Download, Loader2, Sun, Moon, ArrowRight, ArrowUp } from 'lucide-react';
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
 import './styles.css';
@@ -13,13 +13,18 @@ const PX_PER_IN = 96;
 const PAGE_W_PX = PAGE_W_IN * PX_PER_IN;
 const PAGE_H_PX = PAGE_H_IN * PX_PER_IN;
 // Elements a page break should never cut through — mirrors the print stylesheet's break-inside:avoid list.
-const AVOID_SPLIT_SELECTOR = '.tilt-card, .verdict-col, .rationale-card, .leak-row, .confirmed-banner, .survey-flow article, .matrix, .cut-grid, .verdict-grid, .rationale-grid, h1, h2, h3';
+const AVOID_SPLIT_SELECTOR = '.tilt-card, .verdict-col, .rationale-card, .leak-row, .leak-row-pair, .confirmed-banner, .survey-flow article, .matrix, .cut-grid, .verdict-grid, .rationale-grid, h1, h2, h3';
 
 // html2canvas's CSS parser can't read the modern color(srgb ...) syntax that
 // Chromium serializes color-mix() into (used throughout this stylesheet's tags/
 // gradients) — resolve those to plain rgb()/rgba() before capture, on both real
 // elements (inline style) and ::before/::after (a scoped stylesheet, since
 // pseudo-elements can't take inline styles).
+function hexToRgb(hex) {
+  const m = hex.trim().match(/^#?([\da-f]{2})([\da-f]{2})([\da-f]{2})$/i);
+  return m ? [parseInt(m[1], 16), parseInt(m[2], 16), parseInt(m[3], 16)] : [3, 5, 4];
+}
+
 function resolveExoticColor(value) {
   return value.replace(/color\(srgb\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)(?:\s*\/\s*([\d.]+))?\)/g, (_m, r, g, b, a) => {
     const to255 = (v) => Math.round(parseFloat(v) * 255);
@@ -65,6 +70,10 @@ function sanitizeExoticColors(root) {
 
 // A section taller than one page is split at the nearest safe element boundary
 // (never through the middle of a card), same idea as CSS break-inside: avoid.
+// Cuts target an even share of the remaining height per remaining page, rather
+// than always maxing out the current page — a greedy max-then-remainder split
+// tends to leave a nearly-blank sliver as the last page of a section, which
+// reads as broken rather than as a deliberate second slide.
 function computeBreakOffsets(node) {
   const total = node.scrollHeight;
   if (total <= PAGE_H_PX) return [0, total];
@@ -73,17 +82,42 @@ function computeBreakOffsets(node) {
     const r = el.getBoundingClientRect();
     return { top: r.top - rect0.top, bottom: r.bottom - rect0.top };
   });
+  const snapToSafeBoundary = (cursor, cut) => {
+    const hit = candidates.find((c) => cut > c.top + 4 && cut < c.bottom - 4);
+    return hit && hit.top > cursor + 40 ? hit.top : cut;
+  };
+  const pageCount = Math.ceil(total / PAGE_H_PX);
   const offsets = [0];
   let cursor = 0;
-  while (total - cursor > PAGE_H_PX) {
-    let cut = cursor + PAGE_H_PX;
-    const hit = candidates.find((c) => cut > c.top + 4 && cut < c.bottom - 4);
-    if (hit && hit.top > cursor + 40) cut = hit.top;
-    offsets.push(cut);
-    cursor = cut;
+  for (let i = 1; i < pageCount; i++) {
+    const pagesLeft = pageCount - i + 1;
+    const target = Math.min(cursor + (total - cursor) / pagesLeft, cursor + PAGE_H_PX);
+    offsets.push(snapToSafeBoundary(cursor, target));
+    cursor = offsets[offsets.length - 1];
   }
   offsets.push(total);
-  return offsets;
+  // Snapping only ever pulls a cut earlier to dodge a protected element, which can
+  // leave whatever's left in a later page longer than one page's budget — re-split
+  // any gap that still overflows rather than let that page's content run long. A
+  // large protected block (e.g. the impact/effort matrix) can itself eat almost a
+  // full page, though, in which case the "remainder" after it is just a sliver —
+  // stranding that as its own near-blank page is worse than letting the page
+  // before it run slightly over, so it's left alone under MIN_TAIL_PX.
+  const MIN_TAIL_PX = 64;
+  const fixed = [offsets[0]];
+  for (let i = 1; i < offsets.length; i++) {
+    let segStart = fixed[fixed.length - 1];
+    const segEnd = offsets[i];
+    while (segEnd - segStart > PAGE_H_PX) {
+      if (segEnd - (segStart + PAGE_H_PX) < MIN_TAIL_PX) break;
+      const extra = snapToSafeBoundary(segStart, segStart + PAGE_H_PX);
+      if (extra <= segStart) break; // nothing safe to split on further — accept the overflow
+      fixed.push(extra);
+      segStart = extra;
+    }
+    fixed.push(segEnd);
+  }
+  return fixed;
 }
 
 const TOC_GROUPS = [
@@ -449,8 +483,8 @@ function Overview() {
     <section className="slide" id="overview">
       <SectionHead
         eyebrow="Q1 · Funnel review"
-        title="The journey converts once a customer engages; the cost sits upstream."
-        dek="2.3% of offers become loans. The product works after engagement; the constraints are reach, offer value and application completion."
+        title="The funnel works after people engage. Most of the drop-off happens before they even open the offer."
+        dek="2.3% of offers become loans. The product works after engagement. The main bottlenecks are reach, value and completion."
       />
       <p className="provenance-note">Every <span>SQL</span>-tagged figure links to its source query — see <a href="#appendix">Method</a>.</p>
       <Reveal>
@@ -481,13 +515,31 @@ function Overview() {
   );
 }
 
+function LeakRow({ s, i }) {
+  return (
+    <Reveal as="div" className={`leak-row${i === 1 ? ' big-drop drop-start' : ''}${i === 2 ? ' big-drop drop-end' : ''}`} delay={i * 55}>
+      <div className={`leak-name${s.strong ? ' strong' : ''}${s.dim ? ' dim' : ''}`}>
+        <strong>{s.name}</strong>
+        <small>{s.note}</small>
+        {i === 1 && <span className="drop-badge">Largest drop zone</span>}
+      </div>
+      <div className="leak-bar">
+        <i className={s.final ? 'carry final' : 'carry'} style={{ '--w': `${s.carry}%` }} />
+        {s.lost > 0 && <i className="lost" style={{ '--w': `${s.lost}%` }} />}
+      </div>
+      <div className="leak-lost">{s.lostLabel || '—'}</div>
+      <div className={s.final ? 'leak-conv good' : 'leak-conv'}>{s.stepConv || '—'}</div>
+    </Reveal>
+  );
+}
+
 function FunnelLeakTable() {
   return (
     <section className="slide flow-slide" id="funnel">
       <SectionHead
         eyebrow="Q1 · Where offers are lost"
-        title="Two steps account for nearly every loss."
-        dek={<>40,000 offers, 909 loans. Each row shows what carried forward, what was lost and step conversion. <Evidence query="overall_funnel.sql + conversion_by_stage.sql" queryFile="conversion_by_stage.sql">The headline query counts every dated funnel event; the stage query divides each event count by the prior completed stage.</Evidence></>}
+        title="Two decisions explain most of the drop-off."
+        dek={<>40,000 offers, 909 loans. Each row shows what carried forward, what was lost and how each step converted. <Evidence query="overall_funnel.sql + conversion_by_stage.sql" queryFile="conversion_by_stage.sql">The headline query counts every dated funnel event; the stage query divides each event count by the prior completed stage.</Evidence></>}
         split
       />
       <div className="leak-legend">
@@ -501,21 +553,15 @@ function FunnelLeakTable() {
           <span>Lost here</span>
           <span>Step conv.</span>
         </div>
-        {FUNNEL_LOSSES.map((s, i) => (
-          <Reveal as="div" className={`leak-row${i === 1 ? ' big-drop drop-start' : ''}${i === 2 ? ' big-drop drop-end' : ''}`} delay={i * 55} key={s.name}>
-            <div className={`leak-name${s.strong ? ' strong' : ''}${s.dim ? ' dim' : ''}`}>
-              <strong>{s.name}</strong>
-              <small>{s.note}</small>
-              {i === 1 && <span className="drop-badge">Largest drop zone</span>}
-            </div>
-            <div className="leak-bar">
-              <i className={s.final ? 'carry final' : 'carry'} style={{ '--w': `${s.carry}%` }} />
-              {s.lost > 0 && <i className="lost" style={{ '--w': `${s.lost}%` }} />}
-            </div>
-            <div className="leak-lost">{s.lostLabel || '—'}</div>
-            <div className={s.final ? 'leak-conv good' : 'leak-conv'}>{s.stepConv || '—'}</div>
-          </Reveal>
-        ))}
+        <LeakRow s={FUNNEL_LOSSES[0]} i={0} />
+        {/* Viewed offer + Tapped apply render as one bordered "biggest drop" callout
+           (see .big-drop/.drop-start/.drop-end below) — wrapped together so a PDF/print
+           page break can't land between them and cut the callout in half. */}
+        <div className="leak-row-pair">
+          <LeakRow s={FUNNEL_LOSSES[1]} i={1} />
+          <LeakRow s={FUNNEL_LOSSES[2]} i={2} />
+        </div>
+        {FUNNEL_LOSSES.slice(3).map((s, idx) => <LeakRow s={s} i={idx + 3} key={s.name} />)}
       </div>
       <p className="flow-hint">Everything from requirements onward converts at 60–93%. The largest losses occur in the <span className="marker-sweep">first two customer decisions</span>: opening the offer and choosing to apply.</p>
     </section>
@@ -527,8 +573,8 @@ function Verdict() {
     <section className="slide" id="verdict">
       <SectionHead
         eyebrow="Q1 · Verdict"
-        title="The largest losses occur before customers apply."
-        dek="Offer reach is the largest observed leak; offer value is next. Settlement verification is a confirmed hard stop for a smaller cohort."
+        title="Most of the loss happens before the application."
+        dek="Offer reach is the largest observed leak, then offer value. Settlement verification is a confirmed hard stop for a smaller cohort."
       />
       <div className="verdict-grid">
         <Reveal className="verdict-col good">
@@ -615,7 +661,7 @@ function PropositionBody() {
         <div><b>27.8%</b><small>view → apply, with a total-cost saving</small></div>
         <div><b className="neg">5.3%</b><small>view → apply, without one</small></div>
       </div>
-      <p className="body-note">Many offers cut the monthly payment without cutting total cost — a saving that isn’t a saving. <Evidence query="offer_quality_vs_conversion.sql">Joins offer economics from <code>quotes.csv</code>, then compares application and loan rates across saving-quality buckets.</Evidence></p>
+      <p className="body-note">Many offers cut the monthly payment without cutting total cost — a saving that isn’t a saving. Customers are responding to what feels affordable now, not just to the lowest total repayment. <Evidence query="offer_quality_vs_conversion.sql">Joins offer economics from <code>quotes.csv</code>, then compares application and loan rates across saving-quality buckets.</Evidence></p>
     </>
   );
 }
@@ -675,8 +721,8 @@ function OpportunityCuts() {
     <section className="slide executive-opportunities" id="opportunities">
       <SectionHead
         eyebrow="Q1 · Opportunities"
-        title="Conversion is lost upstream, before customers apply."
-        dek="Offer reach is the largest observed leak. Verification is a confirmed hard stop for a smaller cohort."
+        title="Most conversion is lost before people apply."
+        dek="Offer reach is the largest observed leak, and settlement verification is a confirmed hard stop for a smaller cohort."
       />
       <div className="opportunity-frame">
         <Reveal className="primary-leak-hero">
@@ -716,7 +762,7 @@ function OpportunityCuts() {
           </Reveal>
         </div>
       </div>
-      <div className="executive-takeaway"><span>Takeaway</span><p>Improve offer reach and value first. Close the verification hard stop in parallel.</p></div>
+      <div className="executive-takeaway"><span>Takeaway</span><p>Improve offer reach and value first, then close the verification gap in parallel.</p></div>
       <p className="opportunity-source">Evidence: funnel events, lender-verification investigation, channel effectiveness, offer economics and repeat-offer analysis. <a href="#appendix">See method and queries</a>.</p>
       {active && (
         <Modal eyebrow={active.eyebrow} title={active.title} tag={active.confirmed ? <ConfidenceTag confirmed /> : <ConfidenceTag />} onClose={() => setExpanded(null)}>
@@ -734,8 +780,8 @@ function Survey() {
     <section className="slide survey-slide" id="survey">
       <SectionHead
         eyebrow="Q2 · Survey findings"
-        title="Customers aren’t declining to refinance; they’re declining to do it this way."
-        dek="Four moments along one decision journey — the same three issues the funnel data shows, found independently."
+        title="Customers aren’t rejecting refinancing. They’re rejecting the experience."
+        dek="Four moments in one decision journey: the same three issues show up in both the funnel and the survey."
       />
       <div className="survey-flow">
         <svg viewBox="0 0 1000 200" preserveAspectRatio="none">
@@ -753,7 +799,7 @@ function Survey() {
           </Reveal>
         ))}
       </div>
-      <div className="survey-synthesis"><b>The synthesis</b><p>These are four needs, not one “non-converter” group: clearer value, reassurance, less effort, or help with an external lender.</p></div>
+      <div className="survey-synthesis"><b>The synthesis</b><p>These are four needs, not one “non-converter” group: clearer value, reassurance, less effort, or help with an external lender. Customers are not just comparing total cost; they are also comparing monthly payment, term length, and what feels affordable now.</p></div>
       <p className="survey-foot">300 comments coded by theme. Customer modes can overlap; read alongside the funnel evidence. <Evidence method="two-pass survey theme coding">300 free-text responses were coded separately by <code>user_id</code>; themes can overlap and are not SQL-derived percentages.</Evidence></p>
     </section>
   );
@@ -768,9 +814,10 @@ function Matrix() {
       <SectionHead
         eyebrow="Q3 · Next-quarter initiatives"
         title="Eight recommendations, prioritised by impact, effort and evidence."
-        dek="Numbers identify the recommendations; placement shows relative impact and effort. Improve offer reach and credible value, while closing verification coverage in parallel."
+        dek="Priority order: fix reach first, then value, then completion. Close the verification gap in parallel because it is a confirmed blocker for a smaller cohort."
       />
       <Reveal className="matrix-layout">
+        <p className="matrix-summary">We should start with the problems that create the most lost volume: reach, then value, then completion. Verification is a hard-stop fix that should run in parallel.</p>
         <div className="matrix">
           <div className="axis y">Impact on conversion <span>high</span></div>
           <div className="axis x">Effort and build cost <span>high</span></div>
@@ -821,8 +868,8 @@ function Rationale() {
     <section className="slide rationale" id="rationale">
       <SectionHead
         eyebrow="Q3 · Why this order"
-        title="Read down a column."
-        dek="Each opportunity, in one place: what customers said, what the data shows, what we’re assuming, and what we’d build."
+        title="Read from top to bottom."
+        dek="Each opportunity is laid out in one place: what customers said, what the data shows, what we’re assuming, and what we’d build."
       />
       <div className="rationale-grid">
         {RATIONALE.map((r, i) => (
@@ -861,7 +908,7 @@ function Appendix() {
     <section className="slide appendix" id="appendix">
       <SectionHead
         eyebrow="Appendix"
-        title="How to read this, and every query behind it."
+        title="How to read this, and where the analysis came from."
       />
       <Reveal className="appendix-reading">
         <ul className="caveats">
@@ -950,9 +997,20 @@ function App() {
       await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
       const nodes = [...document.querySelectorAll('.app[data-view="slides"] > .cover, .app[data-view="slides"] .slide, .app[data-view="slides"] .question')];
       const bg = getComputedStyle(appEl).getPropertyValue('--bg').trim() || '#ffffff';
-      const doc = new jsPDF({ unit: 'in', format: [PAGE_W_IN, PAGE_H_IN], orientation: 'landscape' });
-      let first = true;
+      const muted = getComputedStyle(appEl).getPropertyValue('--muted').trim() || '#888888';
+      const [bgR, bgG, bgB] = hexToRgb(bg);
+      const [muR, muG, muB] = hexToRgb(muted);
+
+      // Capture every section first and slice any section taller than one page
+      // into per-page canvases, all before touching the PDF. The on-screen "Page
+      // NN" tag baked into each section counts sections, not physical pages, so
+      // once a section spills onto extra pages that tag only lands on one of them
+      // (it's hidden for export — see [data-exporting] in styles.css) — page
+      // numbers here are stamped afterwards against the deck's real, flat page
+      // list instead.
+      const pages = [];
       for (const node of nodes) {
+        const offsets = computeBreakOffsets(node);
         const restoreColors = sanitizeExoticColors(node);
         let fullCanvas;
         try {
@@ -966,23 +1024,60 @@ function App() {
         } finally {
           restoreColors();
         }
-        // A deck section is always one slide. Scale its capture down only in the
-        // exported PDF rather than splitting a near-full slide across two pages.
-        const aspect = fullCanvas.width / fullCanvas.height;
-        let renderW = PAGE_W_IN;
-        let renderH = renderW / aspect;
-        if (renderH > PAGE_H_IN) {
-          renderH = PAGE_H_IN;
-          renderW = renderH * aspect;
+        // Every page renders at the same fixed scale, so a slide's text is the same
+        // size wherever it lands. A section taller than one page spills onto
+        // consecutive full pages, split at the same safe boundaries the print
+        // stylesheet uses — instead of shrinking the whole section to fit one page,
+        // which used to make content-heavy slides look zoomed out next to short ones.
+        const canvasScale = fullCanvas.width / PAGE_W_PX;
+        for (let i = 0; i < offsets.length - 1; i++) {
+          const sy = Math.round(offsets[i] * canvasScale);
+          const sh = Math.min(Math.round((offsets[i + 1] - offsets[i]) * canvasScale), fullCanvas.height - sy);
+          const pageCanvas = document.createElement('canvas');
+          pageCanvas.width = fullCanvas.width;
+          pageCanvas.height = sh;
+          const ctx = pageCanvas.getContext('2d');
+          ctx.fillStyle = bg;
+          ctx.fillRect(0, 0, pageCanvas.width, pageCanvas.height);
+          ctx.drawImage(fullCanvas, 0, sy, fullCanvas.width, sh, 0, 0, fullCanvas.width, sh);
+          pages.push({ canvas: pageCanvas, canvasScale });
         }
-        const x = (PAGE_W_IN - renderW) / 2;
-        const y = (PAGE_H_IN - renderH) / 2;
-        if (!first) doc.addPage([PAGE_W_IN, PAGE_H_IN], 'landscape');
-        first = false;
-        doc.setFillColor(3, 5, 4);
-        doc.rect(0, 0, PAGE_W_IN, PAGE_H_IN, 'F');
-        doc.addImage(fullCanvas.toDataURL('image/jpeg', 0.92), 'JPEG', x, y, renderW, renderH);
       }
+
+      // A page number only ever gets drawn into a corner that's actually empty in
+      // that page's own capture — a slice can end anywhere in the flow, so unlike
+      // the on-screen tag (which always sits in a section's own reserved bottom
+      // padding) there's no guarantee the bottom-right corner is free.
+      function cornerIsBlank(ctx, w, h) {
+        const x = Math.max(0, w - 230);
+        const y = Math.max(0, h - 46);
+        const cw = Math.min(230, w);
+        const ch = Math.min(46, h);
+        if (cw <= 0 || ch <= 0) return false;
+        const { data } = ctx.getImageData(x, y, cw, ch);
+        for (let i = 0; i < data.length; i += 4 * 23) {
+          if (Math.abs(data[i] - bgR) > 12 || Math.abs(data[i + 1] - bgG) > 12 || Math.abs(data[i + 2] - bgB) > 12) return false;
+        }
+        return true;
+      }
+
+      const doc = new jsPDF({ unit: 'in', format: [PAGE_W_IN, PAGE_H_IN], orientation: 'landscape' });
+      pages.forEach(({ canvas, canvasScale }, idx) => {
+        const ctx = canvas.getContext('2d');
+        if (cornerIsBlank(ctx, canvas.width, canvas.height)) {
+          ctx.fillStyle = `rgb(${muR}, ${muG}, ${muB})`;
+          ctx.font = `${10 * canvasScale}px 'DM Mono', monospace`;
+          ctx.textAlign = 'right';
+          ctx.textBaseline = 'alphabetic';
+          ctx.fillText(`PAGE ${String(idx + 1).padStart(2, '0')} / ${String(pages.length).padStart(2, '0')}`, canvas.width - 42 * canvasScale, canvas.height - 30 * canvasScale);
+        }
+
+        if (idx > 0) doc.addPage([PAGE_W_IN, PAGE_H_IN], 'landscape');
+        doc.setFillColor(bgR, bgG, bgB);
+        doc.rect(0, 0, PAGE_W_IN, PAGE_H_IN, 'F');
+        const renderH = Math.min(canvas.height / canvasScale / PX_PER_IN, PAGE_H_IN);
+        doc.addImage(canvas.toDataURL('image/jpeg', 0.92), 'JPEG', 0, 0, PAGE_W_IN, renderH);
+      });
       doc.save('Northbank-slide-deck.pdf');
     } finally {
       appEl.removeAttribute('data-exporting');
@@ -1013,8 +1108,8 @@ function App() {
             {view === 'slides' ? 'Reading view' : 'Slide view'}
           </button>
   <button className="download deck-download" onClick={downloadSlideDeck} disabled={exporting} aria-label="Download the slide deck as a PDF" aria-busy={exporting}>
-    <Download size={13} />
-    {exporting ? 'Preparing…' : 'Slide PDF'}
+    {exporting ? <Loader2 size={13} className="spin" /> : <Download size={13} />}
+    {exporting ? 'Downloading…' : 'Slide PDF'}
   </button>
   <button className="theme-btn" onClick={() => setDark(!dark)} aria-pressed={!dark} aria-label="Toggle color theme">
             {dark ? <Sun size={14} /> : <Moon size={14} />}
