@@ -699,8 +699,13 @@ footer a { color: var(--muted); }
   .slide-head.split-head p { margin-top: 16px; }
   .survey-flow svg, .survey-flow article > i { display: none; }
   .survey-flow article + article { border-left: 1px solid var(--rule); border-top: 0; }
-  .matrix { height: 480px; margin: 0 8px; }
-  .initiative { width: 96px; padding: 6px; }
+  /* Keep the impact/effort matrix square and self-contained on phones. The
+     desktop grid areas otherwise leave the chart in an implicit second column
+     and the enlarged nodes can spill beyond its edges. */
+  .matrix-layout { grid-template-areas: "matrix" "list"; gap: 40px; }
+  .matrix { width: min(100%, 380px); height: min(92vw, 420px); margin: 0 auto; }
+  .initiative { width: 32px; height: 32px; padding: 0; }
+  .axis.x { left: 50%; transform: translateX(-50%); white-space: nowrap; }
   .appendix { display: block; }
   .query-inventory, .appendix-provenance { margin-top: 30px; }
   .method-map { grid-template-columns: 1fr; }
@@ -726,7 +731,7 @@ footer a { color: var(--muted); }
 @media (max-width: 540px) {
   .cover h1 { font-size: 46px; }
   .initiative small { display: none; }
-  .matrix { margin-left: 20px; }
+  .matrix { margin: 0 auto; }
   .axis.y { left: -30px; }
   .channel-compare .row { grid-template-columns: 74px 1fr auto; }
 }
