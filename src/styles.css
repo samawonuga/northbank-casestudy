@@ -682,9 +682,13 @@ footer a { color: var(--muted); }
   .question { padding: 60px 0; min-height: 260px; }
   .business-line { grid-template-columns: 1fr; }
   .business-line b { border-right: 0; border-bottom: 1px solid var(--rule); }
-  .evidence-tip > [role="tooltip"] { left: auto; right: 0; transform: translateY(4px); width: min(340px, calc(100vw - 32px)); }
+  /* An anchored tooltip can run beyond the top or side of a narrow viewport.
+     On touch screens, use a viewport-bound panel so every line of the query,
+     its controls, and its close button remain reachable. */
+  .evidence-tip > [role="tooltip"] { position: fixed; inset: auto 16px 16px; width: auto; max-width: none; max-height: min(72dvh, 520px); overflow-y: auto; transform: translateY(12px); }
   .evidence-tip:hover > [role="tooltip"], .evidence-tip:focus-within > [role="tooltip"], .evidence-tip.open > [role="tooltip"] { transform: translateY(0); }
-  .evidence-tip > [role="tooltip"]::after { left: auto; right: 7px; }
+  .evidence-tip > [role="tooltip"]::after { display: none; }
+  .evidence-tip pre { max-height: min(44dvh, 300px); overscroll-behavior: contain; }
   .leak-head { display: none; }
   .leak-row { grid-template-columns: 1fr; gap: 10px; padding: 18px 0; }
   .leak-bar { order: 2; }
