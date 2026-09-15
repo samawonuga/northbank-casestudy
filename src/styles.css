@@ -154,41 +154,6 @@ nav {
 
 .zone { position: relative; }
 
-/* Optional presentation surface: keeps the editorial reading view intact. */
-.app[data-view="slides"] { counter-reset: deck-page; padding: 24px 0 40px; }
-.app[data-view="slides"] > .cover,
-.app[data-view="slides"] .slide,
-.app[data-view="slides"] .question { counter-increment: deck-page; }
-.app[data-view="slides"] .cover,
-.app[data-view="slides"] .slide,
-.app[data-view="slides"] .question {
-  width: min(1280px, calc(100% - 56px));
-  min-height: calc(100svh - 114px);
-  margin: 24px auto;
-  padding: clamp(42px, 6vw, 78px);
-  border: 1px solid var(--rule);
-  background: var(--panel);
-  box-shadow: 0 20px 48px var(--shadow);
-}
-.app[data-view="slides"] .cover { min-height: calc(100svh - 114px); }
-.app[data-view="slides"] .slide { border-top: 1px solid var(--rule); }
-.app[data-view="slides"] .cover > div::after,
-.app[data-view="slides"] .slide::after,
-.app[data-view="slides"] .question::after {
-  content: 'Page ' counter(deck-page, decimal-leading-zero);
-  position: absolute;
-  right: clamp(22px, 3vw, 42px);
-  bottom: clamp(18px, 2.2vw, 30px);
-  color: var(--muted);
-  font: 10px 'DM Mono', monospace;
-  letter-spacing: .08em;
-  text-transform: uppercase;
-}
-.app[data-view="slides"] .cover > div::after { position: absolute; }
-.app[data-view="slides"] .question::after,
-.app[data-view="slides"] .slide::after { z-index: 1; }
-.app[data-view="slides"] footer { width: min(1280px, calc(100% - 56px)); margin: 0 auto; }
-
 /* ============================= toc rail ============================= */
 
 .toc-rail {
@@ -476,9 +441,9 @@ p.chart-caption { color: var(--muted); font-size: 12px; margin: 8px 0 0; }
 .value-visual i:nth-child(3) { height: 52%; opacity: .5; }
 .value-visual i:nth-child(4) { height: 32%; opacity: .3; }
 .momentum-visual i:nth-child(1) { height: 100%; }
-.momentum-visual i:nth-child(2) { height: 48%; opacity: .7; }
-.momentum-visual i:nth-child(3) { height: 25%; opacity: .48; }
-.momentum-visual i:nth-child(4) { height: 15%; opacity: .3; }
+.momentum-visual i:nth-child(2) { height: 54%; opacity: .7; }
+.momentum-visual i:nth-child(3) { height: 31%; opacity: .48; }
+.momentum-visual i:nth-child(4) { height: 22%; opacity: .3; }
 .executive-takeaway { display: flex; align-items: baseline; gap: 20px; margin-top: 28px; padding: 18px 20px; border-left: 2px solid var(--lime); background: color-mix(in srgb, var(--lime) 7%, transparent); }
 .executive-takeaway span { flex: none; color: var(--lime); font: 10px 'DM Mono', monospace; letter-spacing: .08em; text-transform: uppercase; }
 .executive-takeaway p { margin: 0; color: var(--ink); font: 400 22px/1.15 'Newsreader', serif; letter-spacing: -.02em; }
@@ -578,7 +543,7 @@ p.chart-caption { color: var(--muted); font-size: 12px; margin: 8px 0 0; }
 .axis { position: absolute; font: 10px 'DM Mono', monospace; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
 .axis span { color: var(--lime); }
 .axis.y { left: -38px; top: 48%; transform: rotate(-90deg); }
-.axis.x { bottom: -28px; left: 46%; }
+.axis.x { bottom: -40px; left: 50%; width: 100%; transform: translateX(-50%); text-align: center; line-height: 1.25; }
 .quadrant { position: absolute; font: 11px 'DM Mono', monospace; text-transform: uppercase; color: var(--muted); letter-spacing: .08em; }
 .q1 { top: 17px; right: 17px; }
 .q2 { top: 17px; left: 17px; color: var(--lime); }
@@ -717,11 +682,6 @@ footer a { color: var(--muted); }
   .primary-leak-hero { min-height: 0; }
   .verification-stat { margin-top: 30px; }
   .secondary-leaks { grid-template-rows: auto; }
-  .app[data-view="slides"] { padding: 8px 0 24px; }
-  .app[data-view="slides"] .cover,
-  .app[data-view="slides"] .slide,
-  .app[data-view="slides"] .question { width: min(100% - 28px, 1280px); min-height: auto; margin: 14px auto; padding: 34px 24px 52px; }
-  .app[data-view="slides"] footer { width: min(100% - 28px, 1280px); }
 }
 
 @media (max-width: 520px) {
@@ -736,7 +696,9 @@ footer a { color: var(--muted); }
   .channel-compare .row { grid-template-columns: 74px 1fr auto; }
 }
 
-/* The slide-deck export uses the same presentation surface, one canvas per PDF page. */
+/* Printing (Ctrl/Cmd+P → Save as PDF) renders each section as its own
+   correctly sized, numbered page — a print-native alternative to the
+   "Download PDF" button's pre-rendered file. */
 @page { size: 13.333in 7.5in; margin: 0; }
 @media print {
   * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; color-adjust: exact !important; }
@@ -748,10 +710,11 @@ footer a { color: var(--muted); }
   *, *::before, *::after { animation: none !important; transition: none !important; }
   html, body, #root { width: 13.333in; height: auto; }
   .loader, .app nav, .progress-rail, .toc-rail, .expand-btn, .evidence-tip, footer { display: none !important; }
-  .app[data-view="slides"] { padding: 0; background: var(--bg); }
-  .app[data-view="slides"] .cover,
-  .app[data-view="slides"] .slide,
-  .app[data-view="slides"] .question {
+  .app { counter-reset: deck-page; padding: 0; background: var(--bg); }
+  .app > .cover, .app .slide, .app .question { counter-increment: deck-page; }
+  .app .cover,
+  .app .slide,
+  .app .question {
     width: 13.333in;
     min-height: 7.5in;
     margin: 0;
@@ -769,154 +732,22 @@ footer a { color: var(--muted); }
     break-inside: avoid;
     page-break-inside: avoid;
   }
-  .app[data-view="slides"] .cover > div::after,
-  .app[data-view="slides"] .slide::after,
-  .app[data-view="slides"] .question::after { right: .62in; bottom: .34in; }
-  .app[data-view="slides"] .slide { padding-bottom: .68in; }
-  .app[data-view="slides"] .cover:before { opacity: .55; }
+  .app .cover > div::after,
+  .app .slide::after,
+  .app .question::after {
+    content: 'Page ' counter(deck-page, decimal-leading-zero);
+    position: absolute;
+    right: .62in;
+    bottom: .34in;
+    color: var(--muted);
+    font: 10px 'DM Mono', monospace;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    z-index: 1;
+  }
+  .app .slide { padding-bottom: .68in; }
+  .app .cover:before { opacity: .55; }
 }
-
-/* The "Slide PDF" button captures this exact state to canvas and assembles the PDF
-   itself (a real one-click download, not the browser's print dialog) — same rules
-   as @media print above, in px instead of in since nothing here is being printed. */
-[data-exporting="true"] .loader,
-[data-exporting="true"] .progress-rail,
-[data-exporting="true"] .toc-rail,
-[data-exporting="true"] .expand-btn,
-[data-exporting="true"] .evidence-tip,
-[data-exporting="true"] footer { display: none !important; }
-/* nav stays visible during export (it's a sibling of the captured .cover/.slide/
-   .question nodes, so it never ends up in the canvas either way) so the "Slide PDF"
-   button can actually show its downloading state instead of vanishing with the rest
-   of the chrome. */
-[data-exporting="true"] .reveal { opacity: 1 !important; transform: none !important; }
-[data-exporting="true"] .initiative { opacity: 1 !important; }
-[data-exporting="true"] *, [data-exporting="true"] *::before, [data-exporting="true"] *::after {
-  animation: none !important; transition: none !important;
-}
-/* .leak-bar i and .q-line i start scaleX(0) and only reach scaleX(1) once their
-   row/section has actually scrolled into view (an IntersectionObserver adds the
-   "in" class) — export captures a section's own DOM node directly without ever
-   scrolling it into the browser viewport, so that observer never fires and these
-   bars render empty. Force their revealed end-state for export specifically. */
-[data-exporting="true"] .leak-bar i,
-[data-exporting="true"] .q-line i { transform: scaleX(1) !important; }
-[data-exporting="true"] nav .spin { animation: spin .8s linear infinite !important; }
-/* The on-screen "Page NN" tag counts sections, not physical PDF pages, so a
-   section that spills onto extra pages leaves it wrong or missing on most of
-   them — downloadSlideDeck() stamps its own accurate one per physical page instead. */
-[data-exporting="true"][data-view="slides"] .cover > div::after,
-[data-exporting="true"][data-view="slides"] .slide::after,
-[data-exporting="true"][data-view="slides"] .question::after { display: none !important; }
-[data-exporting="true"].app[data-view="slides"] { padding: 0 !important; }
-[data-exporting="true"][data-view="slides"] .cover,
-[data-exporting="true"][data-view="slides"] .slide,
-[data-exporting="true"][data-view="slides"] .question {
-  width: 1280px !important;
-  min-height: 720px !important;
-  margin: 0 auto !important;
-  padding: 50px 60px !important;
-  border: 0 !important;
-  box-shadow: none !important;
-  overflow: visible !important;
-}
-[data-exporting="true"][data-view="slides"] .slide { padding-bottom: 65px !important; }
-[data-exporting="true"][data-view="slides"] .cover:before { opacity: .55; }
-
-/* Keep the overview's evidence on its native 16:9 canvas. Its reading-view
-   spacing is deliberately generous; the deck uses the same content with the
-   denser presentation spacing, so it does not get globally scaled down. */
-[data-exporting="true"][data-view="slides"] #overview .slide-head { margin-bottom: 28px; }
-[data-exporting="true"][data-view="slides"] #overview .slide-head h2 { font-size: 48px; }
-[data-exporting="true"][data-view="slides"] #overview .provenance-note { margin: 12px 0 16px; }
-[data-exporting="true"][data-view="slides"] #overview .tilt-card { padding: 20px; }
-[data-exporting="true"][data-view="slides"] #overview .tilt-card b { margin: 18px 0 8px; font-size: 48px; }
-[data-exporting="true"][data-view="slides"] #overview .business-line b { padding: 18px 20px; }
-
-/* The funnel table's per-row notes are worth the extra height in the reading
-   view, but they're what pushes this section past one export page — compact
-   it for export only, closer to the one-slide funnel table this deck used
-   before the React rebuild. */
-[data-exporting="true"][data-view="slides"] #funnel .slide-head { margin-bottom: 16px; }
-[data-exporting="true"][data-view="slides"] #funnel .leak-legend { margin: -4px 0 10px; }
-[data-exporting="true"][data-view="slides"] #funnel .leak-row { padding: 6px 0; }
-[data-exporting="true"][data-view="slides"] #funnel .leak-name small,
-[data-exporting="true"][data-view="slides"] #funnel .drop-badge { display: none; }
-[data-exporting="true"][data-view="slides"] #funnel .flow-hint { margin-top: 6px; }
-
-/* Question dividers were "spilling" onto a second export page despite visibly
-   fitting one — .question:before's decorative wash sits at inset:-20% -10%,
-   and even though .question clips it (overflow:hidden) so none of that
-   overflow ever paints, scrollHeight still counts it: a purely invisible
-   144px of phantom height was tricking the splitter into thinking the section
-   overflowed. Pinning the pseudo-element inside its box removes exactly the
-   part that was already invisible — no visual change, just an honest height. */
-[data-exporting="true"][data-view="slides"] .question:before { inset: 0; }
-
-/* The verdict/opportunities/survey/roadmap/rationale slides and the appendix
-   comfortably fit one export page's worth of content once their reading-view
-   spacing (built for a leisurely scroll) is tightened — same idea as #funnel
-   and #overview above, just lower-stakes since these sections don't lose any
-   element to hiding, only breathing room. */
-
-[data-exporting="true"][data-view="slides"] #verdict .slide-head { margin-bottom: 20px; }
-[data-exporting="true"][data-view="slides"] #verdict .verdict-col { padding: 14px; }
-[data-exporting="true"][data-view="slides"] #verdict .verdict-col-head { margin-bottom: 6px; }
-[data-exporting="true"][data-view="slides"] #verdict .verdict-item { padding: 6px 0; }
-
-[data-exporting="true"][data-view="slides"] #opportunities .slide-head { margin-bottom: 16px; }
-[data-exporting="true"][data-view="slides"] #opportunities .opportunity-frame { gap: 14px; }
-[data-exporting="true"][data-view="slides"] #opportunities .primary-leak-hero { min-height: 0; padding: 10px; }
-[data-exporting="true"][data-view="slides"] #opportunities .primary-leak-hero h3 { margin-top: 8px; font-size: 22px; }
-[data-exporting="true"][data-view="slides"] #opportunities .primary-leak-hero > p { margin-top: 8px; }
-[data-exporting="true"][data-view="slides"] #opportunities .secondary-leaks { gap: 6px; }
-[data-exporting="true"][data-view="slides"] #opportunities .executive-leak { padding: 6px 12px; }
-[data-exporting="true"][data-view="slides"] #opportunities .executive-leak h3 { margin-top: 3px; font-size: 20px; }
-[data-exporting="true"][data-view="slides"] #opportunities .executive-takeaway { margin-top: 10px; padding: 8px 12px; }
-[data-exporting="true"][data-view="slides"] #opportunities .executive-takeaway p { font-size: 17px; }
-[data-exporting="true"][data-view="slides"] #opportunities .opportunity-source { margin-top: 6px; }
-[data-exporting="true"][data-view="slides"] #opportunities .verification-stat { padding-top: 16px; }
-[data-exporting="true"][data-view="slides"] #opportunities .verification-stat b { font-size: 56px; }
-[data-exporting="true"][data-view="slides"] #opportunities .verification-stat span { margin-top: 6px; }
-[data-exporting="true"][data-view="slides"] #opportunities .verification-proof { margin-top: 12px; }
-[data-exporting="true"][data-view="slides"] #opportunities .primary-loss-visual { margin-top: 12px; }
-
-[data-exporting="true"][data-view="slides"] #survey { padding: 26px 60px !important; }
-[data-exporting="true"][data-view="slides"] #survey .slide-head { margin-bottom: 6px; }
-[data-exporting="true"][data-view="slides"] #survey .survey-flow { margin-top: 4px; }
-[data-exporting="true"][data-view="slides"] #survey .survey-flow article { min-height: 0; padding: 6px 10px; }
-[data-exporting="true"][data-view="slides"] #survey .survey-flow b { font-size: 20px; margin: 3px 0 2px; }
-[data-exporting="true"][data-view="slides"] #survey .survey-flow p { margin-top: 6px; font-size: 13px; }
-[data-exporting="true"][data-view="slides"] #survey .survey-insight { margin-top: 6px; }
-[data-exporting="true"][data-view="slides"] #survey .survey-flow blockquote { margin-top: 6px; font-size: 12px; }
-[data-exporting="true"][data-view="slides"] #survey .survey-synthesis { margin-top: 6px; padding: 8px 12px; }
-[data-exporting="true"][data-view="slides"] #survey .survey-synthesis p { font-size: 13.5px; margin-top: 4px; }
-[data-exporting="true"][data-view="slides"] #survey .survey-foot { margin-top: 6px; }
-
-[data-exporting="true"][data-view="slides"] #roadmap .slide-head { margin-bottom: 14px; }
-[data-exporting="true"][data-view="slides"] #roadmap .matrix-layout { gap: 12px; }
-[data-exporting="true"][data-view="slides"] #roadmap .matrix-summary { margin-bottom: 4px; font-size: 13px; }
-[data-exporting="true"][data-view="slides"] #roadmap .matrix { height: 320px; }
-[data-exporting="true"][data-view="slides"] #roadmap .matrix-list button { padding: 5px 8px; }
-[data-exporting="true"][data-view="slides"] #roadmap .initiative-detail { display: none; }
-
-[data-exporting="true"][data-view="slides"] #rationale .slide-head { margin-bottom: 20px; }
-[data-exporting="true"][data-view="slides"] #rationale .rationale-card { padding: 16px; }
-[data-exporting="true"][data-view="slides"] #rationale .rationale-card-head { margin-bottom: 8px; }
-[data-exporting="true"][data-view="slides"] #rationale .rationale-row { padding: 7px 0; }
-
-[data-exporting="true"][data-view="slides"] #appendix .slide-head { margin-bottom: 20px; }
-[data-exporting="true"][data-view="slides"] #appendix .caveats { gap: 10px; }
-[data-exporting="true"][data-view="slides"] #appendix .appendix-note { margin-top: 10px; }
-[data-exporting="true"][data-view="slides"] #appendix .query-inventory { padding: 16px; }
-[data-exporting="true"][data-view="slides"] #appendix .method-notes { padding: 14px; gap: 10px 22px; margin-top: 20px !important; }
-[data-exporting="true"][data-view="slides"] #appendix .method-notes article { padding-top: 10px; }
-/* .method-notes was only one of three cards stacked inside .appendix-provenance
-   (query map and tools-used follow it) — those two keep their reading-view
-   margins/padding if not tightened too, which is what was actually leaving a
-   few hundred px of unexplained gap below the working notes card. */
-[data-exporting="true"][data-view="slides"] #appendix .method-map { margin-top: 14px; padding: 10px; gap: 6px 18px; }
-[data-exporting="true"][data-view="slides"] #appendix .tools-used { margin-top: 8px; padding: 8px 12px; gap: 8px; }
 
 @media (prefers-reduced-motion: reduce) {
   *, *:before, *:after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; }
