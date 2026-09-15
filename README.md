@@ -43,7 +43,7 @@ The data was extracted on 31 August 2026 and covers offers created from March to
 - `src/ui.jsx` and `src/hooks.js` — shared interface components and behaviour.
 - `src/styles.css` — responsive presentation and PDF-export styling.
 - `public/sql/` — SQL queries used for the analysis.
-- `docs/pdf/northbank.pdf` — downloadable static version of the case study.
+- `docs/pdf/northbank.pdf` — downloadable presentation version of the case study.
 - `data/` — source datasets and task materials.
 
 ## Run locally
@@ -61,7 +61,7 @@ Open the Vite URL shown in the terminal.
 npm run build
 ```
 
-The app includes a **Download PDF** action that downloads the static case-study PDF from `docs/pdf/northbank.pdf`.
+The app includes a **Download PDF** action that downloads the companion presentation PDF from `docs/pdf/northbank.pdf`. It presents the same findings and prioritisation, in a format tailored for sharing.
 
 ## Notes
 

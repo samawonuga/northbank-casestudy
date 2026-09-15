@@ -13,11 +13,11 @@ export function Matrix() {
       <Reveal className="matrix-layout">
         <div className="matrix">
           <div className="axis y">Impact on conversion <span>high</span></div>
-          <div className="axis x">Delivery complexity &amp; dependencies <span>high</span></div>
-          <div className="quadrant q1">Build next</div>
-          <div className="quadrant q2">Win quickly</div>
-          <div className="quadrant q3">Keep on radar</div>
-          <div className="quadrant q4">Defer</div>
+          <div className="axis x">Effort and build cost <span>high</span></div>
+          <div className="quadrant q1">Plan &amp; resource</div>
+          <div className="quadrant q2">Do now</div>
+          <div className="quadrant q3">Fill-in</div>
+          <div className="quadrant q4">Reconsider</div>
           {INITIATIVES.map((it, i) => (
             <button
               key={it.n}

@@ -543,7 +543,7 @@ p.chart-caption { color: var(--muted); font-size: 12px; margin: 8px 0 0; }
 .axis { position: absolute; font: 10px 'DM Mono', monospace; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
 .axis span { color: var(--lime); }
 .axis.y { left: -38px; top: 48%; transform: rotate(-90deg); }
-.axis.x { bottom: -40px; left: 50%; width: 100%; transform: translateX(-50%); text-align: center; line-height: 1.25; }
+.axis.x { bottom: -28px; left: 46%; }
 .quadrant { position: absolute; font: 11px 'DM Mono', monospace; text-transform: uppercase; color: var(--muted); letter-spacing: .08em; }
 .q1 { top: 17px; right: 17px; }
 .q2 { top: 17px; left: 17px; color: var(--lime); }
