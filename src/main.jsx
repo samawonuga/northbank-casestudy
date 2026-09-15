@@ -172,26 +172,25 @@ const AGENDA = [
 
 const FUNNEL_LOSSES = [
   { name: 'Offer sent', note: 'Every eligible customer. 45% received a push alongside email.', carry: 100, lost: 0 },
-  { name: 'Viewed offer', note: '62% of offers were never opened — the single largest leak.', carry: 37.96, lost: 62.04, lostLabel: '−24,815', stepConv: '38.0%', strong: true },
+  { name: 'Viewed offer', note: '62% of offers were never opened. The single largest leak.', carry: 37.96, lost: 62.04, lostLabel: '−24,815', stepConv: '38.0%', strong: true },
   { name: 'Tapped apply', note: '80.8% of everyone who viewed the offer never went on to apply.', carry: 7.3, lost: 30.67, lostLabel: '−12,267', stepConv: '19.2%', strong: true },
   { name: 'Requirements done', note: '39% stalled on standard identity and income checks.', carry: 4.44, lost: 2.86, lostLabel: '−1,143', stepConv: '60.8%', dim: true },
-  { name: 'Settlement uploaded', note: 'A median nine-day wait on the customer’s old lender.', carry: 3.34, lost: 1.1, lostLabel: '−439', stepConv: '75.3%', dim: true },
-  { name: 'Settlement verified', note: 'Every loss here came from an unsupported lender.', carry: 2.45, lost: 0.9, lostLabel: '−358', stepConv: '73.2%', dim: true },
+  { name: 'Settlement uploaded', note: "A median nine-day wait on the customer's old lender.", carry: 3.34, lost: 1.1, lostLabel: '−439', stepConv: '75.3%', dim: true },
+  { name: 'Settlement verified', note: 'Drop after settlement quote upload;', carry: 2.45, lost: 0.9, lostLabel: '−358', stepConv: '73.2%', dim: true },
   { name: 'Loan funded', note: 'The strongest step in the funnel: 92.9% of verified applicants fund.', carry: 2.27, lost: 0.17, lostLabel: '−69', stepConv: '92.9%', strong: true, final: true },
 ];
 
 const DOING_WELL = [
-  { n: '01', title: 'Push is associated with roughly 2× engagement', detail: '~2× lift in view, apply and loan rate at every stage — but only 45% of offers carry one.' },
-  { n: '02', title: 'Past verification, the back half converts', detail: '909 of 978 verified applicants are funded. The strongest step in the funnel.' },
+  { n: '01', title: 'Push is associated with roughly 2× engagement', detail: '~2× lift in view, apply and loan rate at every stage, but only 45% of offers carry one.' },
+  { n: '02', title: 'Verified applicants almost always fund.', detail: '909 of 978 verified applicants are funded. The strongest step in the funnel.' },
   { n: '03', title: 'Month-on-month performance is steady', detail: 'Offer-to-loan holds flat at 2.1–2.6% across four matured cohorts.' },
 ];
 
 const OPPORTUNITIES = [
-  { n: '01', title: 'Offer reach', detail: '62% never opened. 24,815 lost — the largest observed leak.' },
+  { n: '01', title: 'Offer reach', detail: '62% never opened. 24,815 lost; largest observed leak. Apply rate halves at every repeat offer; 13.6% down to 2.0%.' },
   { n: '02', title: 'Offer value', detail: '12,267 viewers do not apply; total-cost saving is associated with higher view → apply.' },
-  { n: '03', title: 'Settlement verification', detail: '0% of 358 applicants from unsupported lenders verify.', confirmed: true },
-  { n: '04', title: 'Application completion', detail: '39% never complete identity and income checks.' },
-  { n: '05', title: 'Repeat-offer policy', detail: 'Apply rate halves at every repeat offer — 13.6% down to 2.0%.' },
+  { n: '03', title: 'Application completion', detail: '39% never complete identity and income checks.' },
+  { n: '04', title: 'Settlement verification', detail: '358 customers drop after quote upload; root cause requires investigation (e.g. is lender supported?)' },
 ];
 
 const CHANNEL_ROWS = [
@@ -222,70 +221,41 @@ const SURVEY = [
 ];
 
 const THEME_LABELS = {
-  platform: 'Platform',
-  proposition: 'Offer value',
-  growth: 'Offer reach',
-  experience: 'Application completion',
-  service: 'Assisted support',
+  reach: 'Reach & engagement',
+  proposition: 'Proposition & intent',
+  conversion: 'Conversion & servicing',
 };
 
 const INITIATIVES = [
-  { n: '01', title: 'Extend settlement verification coverage', evidence: 'Confirmed failure state · close in parallel with upstream conversion work', feedback: '“I had no idea what a settlement letter was or where to get one.”', quadrant: 'Plan', group: 'platform', x: 71, y: 20 },
-  { n: '02', title: 'Set a minimum value floor', evidence: 'Funnel + survey · improve value alongside offer-reach work', feedback: '“Lower monthly but a longer term” does not feel like a saving.', quadrant: 'Plan', group: 'proposition', x: 70, y: 42 },
-  { n: '03', title: 'Expand push eligibility, test new channels', evidence: 'Funnel · largest volume opportunity', quadrant: 'Do now', group: 'growth', x: 25, y: 33 },
-  { n: '04', title: 'Simplify and pre-fill the application', evidence: 'Funnel + survey · largest in-app drop', feedback: '“Started the application but it was taking too long so I left it.”', quadrant: 'Plan', group: 'experience', x: 64, y: 57 },
-  { n: '05', title: 'Support during the settlement wait', evidence: 'Funnel + survey · low build cost', feedback: 'Customers describe waiting on the old lender as being left without a next step.', quadrant: 'Do now', group: 'experience', x: 31, y: 68 },
-  { n: '06', title: 'Pilot an assisted / callback option', evidence: 'Survey only · contained pilot', feedback: '“It’s a big decision; I wanted a human, not an app.”', quadrant: 'Fill-in', group: 'service', x: 24, y: 76 },
-  { n: '07', title: 'Manage re-offer frequency', evidence: 'Funnel · reduce repeat contact before scaling reach', feedback: 'For some, the offer arrives too late: “I’m almost done paying it off.”', quadrant: 'Do now', group: 'growth', x: 28, y: 49 },
-  { n: '08', title: 'Test offer design by cohort', evidence: 'Funnel + survey · experiment with APR, term and value framing across customer segments', feedback: '“Lower monthly but a longer term” does not feel like a saving.', quadrant: 'Plan', group: 'proposition', x: 76, y: 64 },
+  { n: '01', title: 'Expand offer reach', evidence: 'Expand push to more eligible customers and test send timing to increase offer visibility. 52.4% vs 26.0% viewed with vs without push.', quadrant: 'Do now', group: 'reach', x: 25, y: 33 },
+  { n: '02', title: 'Test repeat-offer cadence and targeting', evidence: 'Test when and how often repeat offers are sent, and tailor the next offer to customer needs such as monthly payment vs total cost. View → Apply falls 31.1% → 6.7% from offer 1 to 4.', quadrant: 'Do now', group: 'reach', x: 28, y: 49 },
+  { n: '03', title: 'Improve offer value & framing', evidence: 'Review APR/term economics and test tailored value framing, such as monthly payment vs total saving. Only 19.2% of viewers apply; conversion varies materially by APR, term and total-cost saving.', quadrant: 'Do now', group: 'proposition', x: 31, y: 57 },
+  { n: '04', title: 'Set a total-cost saving threshold', evidence: 'Review offers that lower monthly payments but increase total cost; test whether clearer value framing or pricing changes improve uptake. 38.4% fall into this group.', quadrant: 'Plan', group: 'proposition', x: 70, y: 42 },
+  { n: '05', title: 'Simplify digital application experience', evidence: 'Reduce application effort by pre-filling known information and identifying the requirements causing abandonment. 60.8% complete requirements.', quadrant: 'Plan', group: 'conversion', x: 64, y: 57 },
+  { n: '06', title: 'Fix settlement verification drop-off', evidence: 'Capture why verification fails, then address the largest causes.', quadrant: 'Plan', group: 'conversion', x: 71, y: 20 },
+  { n: '07', title: 'Improve settlement status guidance', evidence: 'Give customers clearer progress, next steps and expectations while settlement is being verified. Survey feedback indicates uncertainty during the settlement wait.', quadrant: 'Do now', group: 'conversion', x: 31, y: 68 },
+  { n: '08', title: 'Test trust & reassurance interventions', evidence: 'Audit existing support/trust signals and test targeted in-app (or web) reassurance for hesitant customers (e.g. FAQs or contact options). Survey feedback indicates demand for human reassurance.', quadrant: 'Fill-in', group: 'conversion', x: 24, y: 76 },
 ];
 
 const RATIONALE = [
   {
-    name: 'Verification coverage', confirmed: true,
-    feel: 'Stranded waiting on a figure from the old lender.',
-    data: '0% of 358 applicants from unsupported lenders ever verify.',
-    assumption: 'Confirmed, not assumed — named-lender count equals verified count every month. Nothing to test.',
-    capability: 'Document parsing — wider lender coverage behind a manual-review queue.',
+    name: 'Reach & engagement',
+    feel: '“It was one email among many, and nothing followed it up.”',
+    assumption: 'Assumes the push lift is causal, not a proxy for app-engaged customers. Test: randomised push eligibility, send timing and cadence.',
+    capability: 'Channel orchestration — broader push eligibility, send-time testing and cadence control across push, email and in-app.',
   },
   {
-    name: 'Offer reach',
-    feel: 'One email among many, with no second touchpoint.',
-    data: '62% never open. Push doubles engagement but reaches 45% of offers.',
-    assumption: 'Assumes the push lift is causal, not a proxy for app-engaged customers. Test: randomised push-eligibility A/B.',
-    capability: 'Channel orchestration — push, SMS and in-app, with frequency control.',
+    name: 'Proposition & intent',
+    feel: '“Lower monthly but a longer term. I’d pay about £600 more in the end.”',
+    assumption: 'Assumes offer economics and framing drive the gap, not intent. Test: tailored value framing and minimum-saving thresholds.',
+    capability: 'Offer value engine — APR/term review, saving thresholds and value framing tuned to customer economics.',
   },
   {
-    name: 'Offer value',
-    feel: 'A lower monthly payment can feel like a saving even when the total cost is higher.',
-    data: 'View-to-apply 27.8% with a saving, 5.3% without. 38.4% of offers raise total cost.',
-    assumption: 'Assumes customers respond to monthly affordability as much as total cost. Test: A/B minimum-saving thresholds and clearer value framing.',
-    capability: 'Offer eligibility engine — saving thresholds, term caps and value framing tuned by cohort, not just display copy.',
+    name: 'Conversion & servicing',
+    feel: '“Started the application but it was taking too long so I left it.” · “Waiting on my lender for the settlement figure, it never came.”',
+    assumption: 'Assumes drop-off is effort and uncertainty, not eligibility. The verification cause stays unknown until failure reasons are captured. Test: pre-filled flow, instrumented failures, proactive status.',
+    capability: 'Pre-fill and save-and-resume, failure-reason instrumentation, proactive settlement status and targeted reassurance.',
   },
-  {
-    name: 'Application completion',
-    feel: 'Too long to finish in one sitting, so they leave it.',
-    data: '39% never complete ID and income checks. Median 9-day settlement wait.',
-    assumption: 'Assumes drop-off is effort, not eligibility. Test: pre-filled versus current requirements flow.',
-    capability: 'Save-and-resume — prefilled data, status visibility, assisted route.',
-  },
-];
-
-const CAVEATS = [
-  'Every offer in this extract was emailed, so email’s own effect can’t be isolated — only push’s incremental lift on top of it is measurable here.',
-  'APR, saving and push comparisons are correlational, not a designed experiment — consistent and monotonic enough to act on, but A/B tests would confirm causality before a full rollout.',
-  'Opportunity 01 is the exception: causally confirmed, not inferred — the named-lender count matches the verified count exactly, every month. Extending coverage is a platform decision, not a product lever.',
-];
-
-const QUERY_INVENTORY = [
-  ['Data setup & integrity', 2],
-  ['Core funnel', 2],
-  ['Offer reach', 5],
-  ['Offer value', 5],
-  ['Application completion', 2],
-  ['Lender-verification investigation', 6],
-  ['Business impact', 1],
-  ['Survey theme coding', 2],
 ];
 
 /* ============================= small building blocks ============================= */
@@ -510,12 +480,12 @@ function Overview() {
         <Tilt>
           <small>Never opened</small>
           <b>62% <Evidence query="conversion_by_stage.sql">Counts non-null <code>viewed_offer_date</code> values; the complement is offers never viewed.</Evidence></b>
-          <p>24,815 offers never viewed — the largest leak.</p>
+          <p>24,815 offers are never viewed. The largest leak.</p>
         </Tilt>
         <Tilt>
           <small>Push effect</small>
           <b>~2× <Evidence query="channel_effectiveness.sql">Groups the funnel by <code>push_sent</code>. All offers were emailed, so it measures push on top of email, not email’s standalone effect.</Evidence></b>
-          <p>Digital engagement lift at every stage, on top of email.</p>
+          <p>higher offer view, apply and loan rates among push recipients.</p>
         </Tilt>
       </div>
       <div className="business-line">
@@ -551,7 +521,7 @@ function FunnelLeakTable() {
     <section className="slide flow-slide" id="funnel">
       <SectionHead
         eyebrow="Q1 · Where offers are lost"
-        title="Two decisions explain most of the drop-off."
+        title="Most losses happen at two points."
         dek={<>40,000 offers, 909 loans. Each row shows what carried forward, what was lost and how each step converted. <Evidence query="overall_funnel.sql + conversion_by_stage.sql" queryFile="conversion_by_stage.sql">The headline query counts every dated funnel event; the stage query divides each event count by the prior completed stage.</Evidence></>}
         split
       />
@@ -587,7 +557,7 @@ function Verdict() {
       <SectionHead
         eyebrow="Q1 · Verdict"
         title="Most of the loss happens before the application."
-        dek="Offer reach is the largest observed leak. Offer value is the next biggest issue. Settlement verification is a confirmed hard stop for a smaller group."
+        dek="Offer reach is the largest observed leak. Offer value is the next key opportunity. Settlement verification is a confirmed hard stop for a smaller group."
       />
       <div className="verdict-grid">
         <Reveal className="verdict-col good">
@@ -608,7 +578,7 @@ function Verdict() {
         <Reveal className="verdict-col watch" delay={100}>
           <div className="verdict-col-head">
             <h3>Could be improved</h3>
-            <span>5 areas to address</span>
+            <span>4 areas to address</span>
           </div>
           {OPPORTUNITIES.map((o) => (
             <div className="verdict-item" key={o.n}>
@@ -653,7 +623,7 @@ function ReachBody({ compact }) {
           ))}
         </div>
       )}
-      <p className="body-note">Push roughly doubles conversion, but reaches only 45% of offers. <Evidence query="channel_effectiveness.sql">Counts viewed, applied and funded offers by <code>push_sent</code>; results are observational, not a randomised test.</Evidence></p>
+      <p className="body-note">~2× lift in view, apply and loan rate at every stage, but only 45% of offers carry one.</p>
     </>
   );
 }
@@ -674,7 +644,7 @@ function PropositionBody() {
         <div><b>27.8%</b><small>view → apply, with a total-cost saving</small></div>
         <div><b className="neg">5.3%</b><small>view → apply, without one</small></div>
       </div>
-      <p className="body-note">Many offers cut the monthly payment without cutting total cost — a saving that isn’t a saving. Customers are responding to what feels affordable now, not just to the lowest total repayment. <Evidence query="offer_quality_vs_conversion.sql">Joins offer economics from <code>quotes.csv</code>, then compares application and loan rates across saving-quality buckets.</Evidence></p>
+      <p className="body-note">Review APR/term economics and test tailored value framing, such as monthly payment vs total saving. Only 19.2% of viewers apply; conversion varies materially by APR, term and total-cost saving.</p>
     </>
   );
 }
@@ -702,7 +672,7 @@ function ExperienceBody() {
           <div><b>9 days</b><small>median wait on the old lender</small></div>
         </div>
       </div>
-      <p className="drift-note">Repeat offers get worse: total-cost saving falls £400 → £223 while the monthly figure <em>rises</em> £62 → £90. <Evidence query="repeat_exposure.sql">Groups a clean 1:1 funnel/quotes join by <code>offer_number</code>; percentages prevent a shrinking repeat-offer base from being mistaken for conversion decay.</Evidence></p>
+      <p className="drift-note">Test when and how often repeat offers are sent, and tailor the next offer to customer needs such as monthly payment vs total cost. View → Apply falls 31.1% → 6.7% from offer 1 to 4.</p>
     </>
   );
 }
@@ -711,19 +681,19 @@ function SettlementBody() {
   return (
     <>
       <div className="stat-pair">
-        <div><b>358</b><small>applicants from unsupported lenders reached settlement upload</small></div>
-        <div><b>0%</b><small>of this cohort completed verification</small></div>
+        <div><b>358</b><small>customers drop after quote upload</small></div>
+        <div><b>73.2%</b><small>step conversion</small></div>
       </div>
-      <p className="body-note">Named-lender count equals verified count every month: every observed loss at this point comes from an unsupported lender. <Evidence method="lender-verification investigation">The analysis joins <code>funnel.csv</code> and <code>quotes.csv</code> 1:1, checks named lender against verification by month, then isolates uploaded settlement documents.</Evidence></p>
+      <p className="body-note">Root cause requires investigation (e.g. is lender supported?)</p>
     </>
   );
 }
 
 const OPPORTUNITY_CARDS = {
-  reach: { eyebrow: '02 · Offer reach', title: '62% of offers are never opened.', Body: ReachBody },
-  value: { eyebrow: '03 · Offer value', title: 'A saving that isn’t a saving doesn’t convert.', Body: PropositionBody },
-  friction: { eyebrow: '04–05 · Completion & repeat offers', title: 'Application completion and repeat-offer quality.', Body: ExperienceBody },
-  settlement: { eyebrow: '03 · Settlement verification', title: 'Settlement verification hard stop.', Body: SettlementBody, confirmed: true },
+  reach: { eyebrow: 'Offer reach', title: '62% never opened. 24,815 lost; largest observed leak.', Body: ReachBody },
+  value: { eyebrow: 'Offer value', title: '12,267 viewers do not apply; total-cost saving is associated with higher view → apply.', Body: PropositionBody },
+  friction: { eyebrow: 'Conversion & servicing', title: 'Simplify digital application experience', Body: ExperienceBody },
+  settlement: { eyebrow: 'Settlement verification', title: '358 customers drop after quote upload.', Body: SettlementBody },
 };
 
 function OpportunityCuts() {
@@ -735,48 +705,48 @@ function OpportunityCuts() {
       <SectionHead
         eyebrow="Q1 · Opportunities"
         title="Most conversion is lost before people apply."
-        dek="Reach is the biggest leak. Verification is a confirmed blocker for a smaller cohort."
+        dek="Offer reach is the largest observed leak. Offer value is the next key opportunity."
       />
       <div className="opportunity-frame">
         <Reveal className="primary-leak-hero">
-          <div className="opportunity-kicker"><span>Primary conversion leak</span><span>Observed funnel pattern</span></div>
+          <div className="opportunity-kicker"><span>Offer reach</span><span>Largest observed leak</span></div>
           <h3>Offer engagement</h3>
-          <div className="verification-stat"><b>24,815</b><span>offers are never opened</span></div>
-          <div className="verification-proof"><b>62%</b><span>of all offers are lost before the proposition is seen</span></div>
+          <div className="verification-stat"><b>24,815</b><span>offers are never viewed</span></div>
+          <div className="verification-proof"><b>62%</b><span>of offers were never opened</span></div>
           <div className="primary-loss-visual" aria-label="63.5% of all losses are offers never opened, 31.4% are opened but not applied for, and 5.1% occur in the application"><i /><i /><i /></div>
-          <p><strong>Conversion is lost before customers assess value or begin an application.</strong> Push is associated with roughly 2× engagement, but reaches only 45% of offers.</p>
+          <p><strong>~2× lift in view, apply and loan rate at every stage, but only 45% of offers carry one.</strong></p>
         </Reveal>
 
         <div className="secondary-leaks">
-          <div className="opportunity-kicker"><span>Secondary conversion leaks</span><span>Correlational signals + one confirmed hard stop</span></div>
+          <div className="opportunity-kicker"><span>Could be improved</span><span>Offer value, application completion and settlement verification</span></div>
           <Reveal className="executive-leak" delay={0}>
             <div>
-              <div className="exec-card-kicker"><span>02 · Offer value</span><button className="expand-btn" onClick={() => setExpanded('value')} aria-label="Expand offer value analysis"><Maximize2 size={14} /></button></div>
+              <div className="exec-card-kicker"><span>Offer value</span><button className="expand-btn" onClick={() => setExpanded('value')} aria-label="Expand offer value analysis"><Maximize2 size={14} /></button></div>
               <h3>80.8% <em>of viewers do not apply</em></h3>
-              <p>12,267 customers. View → apply is higher when offers have a total-cost saving.</p>
+          <p>12,267 viewers do not apply; total-cost saving is associated with higher view → apply.</p>
             </div>
             <div className="exec-visual value-visual" aria-label="View to apply rate by APR quartile: 29.7%, 22.3%, 15.4%, and 9.5% from lowest to highest APR"><i><b>29.7</b></i><i><b>22.3</b></i><i><b>15.4</b></i><i><b>9.5</b></i></div>
           </Reveal>
           <Reveal className="executive-leak" delay={80}>
             <div>
-              <div className="exec-card-kicker"><span>03 · Settlement verification</span><div className="exec-card-actions"><ConfidenceTag confirmed /><button className="expand-btn" onClick={() => setExpanded('settlement')} aria-label="Expand settlement verification analysis"><Maximize2 size={14} /></button></div></div>
-              <h3>358 <em>applicants reach a hard stop</em></h3>
-              <p>0% verify when their lender is unsupported — confirmed for this smaller cohort.</p>
+              <div className="exec-card-kicker"><span>Settlement verification</span><div className="exec-card-actions"><button className="expand-btn" onClick={() => setExpanded('settlement')} aria-label="Expand settlement verification analysis"><Maximize2 size={14} /></button></div></div>
+              <h3>358 <em>customers drop after quote upload</em></h3>
+              <p>root cause requires investigation (e.g. is lender supported?)</p>
             </div>
-            <div className="exec-visual verification-visual" aria-label="0% of applicants from unsupported lenders are verified"><i /><b>0%</b></div>
+            <div className="exec-visual verification-visual" aria-label="358 customers drop after quote upload"><i /><b>358</b></div>
           </Reveal>
           <Reveal className="executive-leak" delay={160}>
             <div>
-              <div className="exec-card-kicker"><span>04–05 · Application &amp; repeat offers</span><button className="expand-btn" onClick={() => setExpanded('friction')} aria-label="Expand application and repeat-offer analysis"><Maximize2 size={14} /></button></div>
+              <div className="exec-card-kicker"><span>Application completion</span><button className="expand-btn" onClick={() => setExpanded('friction')} aria-label="Expand application and repeat-offer analysis"><Maximize2 size={14} /></button></div>
               <h3>39% <em>stall on requirements</em></h3>
-              <p>Median lender wait is nine days; apply rate falls from 13.6% to 2.0% across repeat offers.</p>
+              <p>39% never complete identity and income checks.</p>
             </div>
             <div className="exec-visual momentum-visual" aria-label="Apply rate drops from 13.6% on the first offer to 2.0% on the fourth"><i><b>13.6</b></i><i><b>6.5</b></i><i><b>3.4</b></i><i><b>2.0</b></i></div>
           </Reveal>
         </div>
       </div>
-      <div className="executive-takeaway"><span>Takeaway</span><p>Fix reach and value first. Close the verification gap in parallel.</p></div>
-      <p className="opportunity-source">Evidence: funnel events, lender-verification investigation, channel effectiveness, offer economics and repeat-offer analysis. <a href="#appendix">See method and queries</a>.</p>
+      <div className="executive-takeaway"><span>Could be improved</span><p>39% never complete identity and income checks.</p></div>
+      <p className="opportunity-source">Northbank · Refinance cross-sell · Source: funnel.csv, quotes.csv and survey.csv</p>
       {active && (
         <Modal eyebrow={active.eyebrow} title={active.title} tag={active.confirmed ? <ConfidenceTag confirmed /> : <ConfidenceTag />} onClose={() => setExpanded(null)}>
           <active.Body />
@@ -793,8 +763,8 @@ function Survey() {
     <section className="slide survey-slide" id="survey">
       <SectionHead
         eyebrow="Q2 · Survey findings"
-        title="Customers aren’t rejecting refinancing. They’re rejecting the experience."
-        dek="Four moments in one decision journey: the same three issues show up in both the funnel and the survey."
+        title="Non-takers highlight four barriers."
+        dek="Value, reassurance, effort and lender dependencies shape the decision."
       />
       <div className="survey-flow">
         <svg viewBox="0 0 1000 200" preserveAspectRatio="none">
@@ -813,7 +783,7 @@ function Survey() {
         ))}
       </div>
       <div className="survey-synthesis"><b>The synthesis</b><p>These are four needs, not one “non-converter” group: clearer value, reassurance, less effort, and help with an external lender. Customers are weighing monthly payment and term length as much as total cost.</p></div>
-      <p className="survey-foot">300 comments coded by theme. Customer modes can overlap; read alongside the funnel evidence. <Evidence method="two-pass survey theme coding">300 free-text responses were coded separately by <code>user_id</code>; themes can overlap and are not SQL-derived percentages.</Evidence></p>
+      <p className="survey-foot">survey.csv · 300 comments coded by theme</p>
     </section>
   );
 }
@@ -826,11 +796,9 @@ function Matrix() {
     <section className="slide matrix-slide" id="roadmap">
       <SectionHead
         eyebrow="Q3 · Next-quarter initiatives"
-        title="Eight recommendations, prioritised by impact, effort and evidence."
-        dek="Priority order: fix reach first, then value, then completion. Verification should run in parallel because it is a confirmed blocker for a smaller cohort."
+        title="Eight recommendations, led by the biggest leak: four in five customers who see an offer never apply."
       />
       <Reveal className="matrix-layout">
-        <p className="matrix-summary">We should start with the problems that create the most lost volume: reach, then value, then completion. Verification is a hard-stop fix that should run in parallel.</p>
         <div className="matrix">
           <div className="axis y">Impact on conversion <span>high</span></div>
           <div className="axis x">Effort and build cost <span>high</span></div>
@@ -881,8 +849,8 @@ function Rationale() {
     <section className="slide rationale" id="rationale">
       <SectionHead
         eyebrow="Q3 · Why this order"
-        title="Read from top to bottom."
-        dek="Each opportunity is laid out in one place: what customers said, what the data shows, what we’re assuming, and what we’d build."
+        title="What to prioritise next quarter"
+        dek="Every initiative from the previous slide sits under its theme: what customers said, what the data shows, what we’re assuming, and what we’d build"
       />
       <div className="rationale-grid">
         {RATIONALE.map((r, i) => (
@@ -895,10 +863,10 @@ function Rationale() {
               <span>Customers feel</span>
               <p>{r.feel}</p>
             </div>
-            <div className="rationale-row">
+            {r.data && <div className="rationale-row">
               <span>Data shows</span>
               <p>{r.data}</p>
-            </div>
+            </div>}
             <div className="rationale-row">
               <span>We’re assuming</span>
               <p>{r.assumption}</p>
@@ -921,31 +889,11 @@ function Appendix() {
     <section className="slide appendix" id="appendix">
       <SectionHead
         eyebrow="Appendix"
-        title="How to read this, and where the analysis came from."
+        title="Working notes, queries and tools."
       />
-      <Reveal className="appendix-reading">
-        <ul className="caveats">
-          {CAVEATS.map((c, i) => (
-            <li key={i}><b>{`Caveat ${i + 1}`}</b><span>{c}</span></li>
-          ))}
-        </ul>
-        <p className="appendix-note">Deliberately not published: estimating each customer’s current APR from balance, payment and term. Not cleanly comparable with the fields available, so it was dropped rather than forced.</p>
-      </Reveal>
-      <Reveal className="query-inventory">
-        <aside>
-          <span className="query-total">25</span>
-          <span className="query-total-label">Queries · 2 coding passes</span>
-          <ul className="query-list">
-            {QUERY_INVENTORY.map(([label, n]) => (
-              <li key={label}><span>{label}</span><b>{n}</b></li>
-            ))}
-          </ul>
-          <p className="appendix-source">funnel.csv, quotes.csv and survey.csv joined 1:1 on application_id. Run in DuckDB.</p>
-        </aside>
-      </Reveal>
       <Reveal className="appendix-provenance">
-        <div className="method-notes" aria-label="Working notes">
-          <span>Working notes · first pass</span>
+        <div className="method-notes" aria-label="Approach">
+          <span>Approach</span>
           <article>
             <b>01 · Start with the shape of the data</b>
             <p>Checked the CSV grain, date coverage and 1:1 <code>application_id</code> join before drawing conclusions.</p>
@@ -955,7 +903,7 @@ function Appendix() {
             <p>Counted each dated event, then compared losses by volume and step conversion. The first two customer decisions dominate.</p>
           </article>
           <article>
-            <b>03 · Is this offer reach, offer value or application completion?</b>
+            <b>03 · Reach, value or completion?</b>
             <p>Split the funnel by <code>push_sent</code>, offer economics and repeat exposure; joined survey comments to explain the pattern, not prove it.</p>
           </article>
           <article>
@@ -975,7 +923,7 @@ function Appendix() {
         <div className="tools-used" aria-label="Tools used">
           <span>Tools used</span>
           <div><b>Analysis</b><p>DuckDB · SQL</p></div>
-          <div><b>Presentation</b><p>PowerPoint</p></div>
+          <div><b>Presentation</b><p>Google Slides</p></div>
           <div><b>AI tools</b><p>Claude Code</p></div>
           <div><b>UX</b><p>CodePen.io</p></div>
         </div>
@@ -987,7 +935,6 @@ function Appendix() {
 function App() {
   const [dark, setDark] = useState(() => !window.matchMedia('(prefers-color-scheme: light)').matches);
   const [loaded, setLoaded] = useState(false);
-  const [view, setView] = useState('reading');
   const [exporting, setExporting] = useState(false);
   const progress = useScrollProgress();
   const active = useActiveSection(NAV_SECTION_IDS);
@@ -1000,139 +947,17 @@ function App() {
   const downloadSlideDeck = async () => {
     if (exporting) return;
     setExporting(true);
-    const previousView = view;
-    const appEl = document.querySelector('.app');
-    setView('slides');
-    appEl.setAttribute('data-exporting', 'true');
     try {
-      await document.fonts.ready;
-      // let the view-switch + exporting styles actually paint before capturing
-      await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
-      const nodes = [...document.querySelectorAll('.app[data-view="slides"] > .cover, .app[data-view="slides"] .slide, .app[data-view="slides"] .question')];
-      const bg = getComputedStyle(appEl).getPropertyValue('--bg').trim() || '#ffffff';
-      const muted = getComputedStyle(appEl).getPropertyValue('--muted').trim() || '#888888';
-      const [bgR, bgG, bgB] = hexToRgb(bg);
-      const [muR, muG, muB] = hexToRgb(muted);
-
-      // Capture every section first and slice any section taller than one page
-      // into per-page canvases, all before touching the PDF. The on-screen "Page
-      // NN" tag baked into each section counts sections, not physical pages, so
-      // once a section spills onto extra pages that tag only lands on one of them
-      // (it's hidden for export — see [data-exporting] in styles.css) — page
-      // numbers here are stamped afterwards against the deck's real, flat page
-      // list instead.
-      const pages = [];
-      for (const node of nodes) {
-        const offsets = computeBreakOffsets(node);
-        const restoreColors = sanitizeExoticColors(node);
-        let fullCanvas;
-        try {
-          fullCanvas = await html2canvas(node, {
-            width: PAGE_W_PX,
-            height: node.scrollHeight,
-            scale: 2,
-            backgroundColor: bg,
-            useCORS: true,
-          });
-        } finally {
-          restoreColors();
-        }
-        // Every page renders at the same fixed scale, so a slide's text is the same
-        // size wherever it lands. A section taller than one page spills onto
-        // consecutive full pages, split at the same safe boundaries the print
-        // stylesheet uses — instead of shrinking the whole section to fit one page,
-        // which used to make content-heavy slides look zoomed out next to short ones.
-        const canvasScale = fullCanvas.width / PAGE_W_PX;
-        for (let i = 0; i < offsets.length - 1; i++) {
-          // A cut that lands exactly on a border (e.g. a card's bottom edge) can
-          // have that border row rounded onto both sides of the split — the same
-          // hairline appearing as the last row of one page and the first row of
-          // the next. Nudging every non-first slice's start past it drops one
-          // duplicate, invisible row instead of showing a stray line.
-          const bleedGuard = i > 0 ? 2 : 0;
-          const sy = Math.round(offsets[i] * canvasScale) + bleedGuard;
-          const sh = Math.min(Math.round((offsets[i + 1] - offsets[i]) * canvasScale) - bleedGuard, fullCanvas.height - sy);
-          // Every page canvas is the full physical page height, background baked
-          // in, even when its content is shorter — so the PDF page is always one
-          // single image. A shorter page used to end partway down and hand off to
-          // a separately-drawn fill rectangle for the rest: two different PDF
-          // draw operations meeting at a hard edge, which is exactly where some
-          // viewers render a stray hairline (invisible in the source JPEG itself,
-          // so it never showed up checking that).
-          const pageCanvas = document.createElement('canvas');
-          pageCanvas.width = fullCanvas.width;
-          pageCanvas.height = Math.round(PAGE_H_PX * canvasScale);
-          const ctx = pageCanvas.getContext('2d');
-          ctx.fillStyle = bg;
-          ctx.fillRect(0, 0, pageCanvas.width, pageCanvas.height);
-          // A page shorter than the full budget (the tail end of a section that
-          // spilled onto an extra page, e.g. the appendix) used to sit pinned to
-          // the top with all the slack dumped below it as a band of bare page
-          // background under the last card — center it in the page instead so
-          // the leftover space reads as intentional margin, not a leftover gap.
-          const dy = Math.round((pageCanvas.height - sh) / 2);
-          ctx.drawImage(fullCanvas, 0, sy, fullCanvas.width, sh, 0, dy, fullCanvas.width, sh);
-          pages.push({ canvas: pageCanvas, canvasScale, contentBottom: dy + sh });
-        }
-      }
-
-      // A page number only ever gets drawn where it's actually empty in that
-      // page's own capture — a slice can end anywhere in the flow, so unlike the
-      // on-screen tag (which always sits in a section's own reserved bottom
-      // padding) there's no guarantee the corner it would land in is free. Checks
-      // the exact box the text is about to occupy, not just "the corner" — a
-      // fixed guess window can sit above or beside the real text and miss content
-      // right behind it.
-      function isRegionBlank(ctx, x, y, w, h) {
-        x = Math.max(0, Math.round(x));
-        y = Math.max(0, Math.round(y));
-        w = Math.min(Math.round(w), ctx.canvas.width - x);
-        h = Math.min(Math.round(h), ctx.canvas.height - y);
-        if (w <= 0 || h <= 0) return false;
-        const { data } = ctx.getImageData(x, y, w, h);
-        for (let i = 0; i < data.length; i += 4 * 23) {
-          if (Math.abs(data[i] - bgR) > 12 || Math.abs(data[i + 1] - bgG) > 12 || Math.abs(data[i + 2] - bgB) > 12) return false;
-        }
-        return true;
-      }
-
-      const doc = new jsPDF({ unit: 'in', format: [PAGE_W_IN, PAGE_H_IN], orientation: 'landscape' });
-      pages.forEach(({ canvas, canvasScale, contentBottom }, idx) => {
-        const ctx = canvas.getContext('2d');
-        const label = `PAGE ${String(idx + 1).padStart(2, '0')} / ${String(pages.length).padStart(2, '0')}`;
-        const fontPx = 10 * canvasScale;
-        ctx.font = `${fontPx}px 'DM Mono', monospace`;
-        const textW = ctx.measureText(label).width;
-        const padX = 10 * canvasScale;
-        const padY = 8 * canvasScale;
-        const rightX = canvas.width - 42 * canvasScale;
-        // Sits just above the content's own bottom edge, not the page's — a page
-        // shorter than the budget is now centered rather than pinned to the top,
-        // so anchoring to the fixed page bottom could land the label inside the
-        // top-heavy margin above short content instead of just past it.
-        const baselineY = Math.min(canvas.height - 30 * canvasScale, contentBottom - 30 * canvasScale);
-        const boxX = rightX - textW - padX;
-        const boxY = baselineY - fontPx - padY;
-        const boxW = textW + padX * 2;
-        const boxH = fontPx + padY * 2;
-        if (isRegionBlank(ctx, boxX, boxY, boxW, boxH)) {
-          ctx.fillStyle = `rgb(${muR}, ${muG}, ${muB})`;
-          ctx.textAlign = 'right';
-          ctx.textBaseline = 'alphabetic';
-          ctx.fillText(label, rightX, baselineY);
-        }
-
-        if (idx > 0) doc.addPage([PAGE_W_IN, PAGE_H_IN], 'landscape');
-        // The canvas is already the full page height with background baked in
-        // (see above), so this image alone covers the entire page — no separate
-        // fill rect underneath it to form a seam against.
-        doc.addImage(canvas.toDataURL('image/jpeg', 0.92), 'JPEG', 0, 0, PAGE_W_IN, PAGE_H_IN);
-      });
-      doc.save('Northbank-slide-deck.pdf');
+      const pdfUrl = new URL('../docs/northbank.pdf', import.meta.url).href;
+      const link = document.createElement('a');
+      link.href = pdfUrl;
+      link.download = 'northbank.pdf';
+      link.rel = 'noopener';
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
     } finally {
-      appEl.removeAttribute('data-exporting');
-      setView(previousView);
-      setExporting(false);
+      setTimeout(() => setExporting(false), 300);
     }
   };
 
@@ -1145,7 +970,7 @@ function App() {
   return (
     <>
     <Loader done={loaded} onDone={() => setLoaded(true)} />
-    <main className="app" data-theme={dark ? 'dark' : 'light'} data-view={view}>
+    <main className="app" data-theme={dark ? 'dark' : 'light'}>
       <nav>
         <a className="wordmark" href="#top">northbank</a>
         <div className="nav-links">
@@ -1154,12 +979,9 @@ function App() {
           ))}
         </div>
         <div className="nav-actions">
-          <button className="view-btn" onClick={() => setView(view === 'reading' ? 'slides' : 'reading')} aria-pressed={view === 'slides'}>
-            {view === 'slides' ? 'Reading view' : 'Slide view'}
-          </button>
   <button className="download deck-download" onClick={downloadSlideDeck} disabled={exporting} aria-label="Download the slide deck as a PDF" aria-busy={exporting}>
     {exporting ? <Loader2 size={13} className="spin" /> : <Download size={13} />}
-    {exporting ? 'Downloading…' : 'Slide PDF'}
+    {exporting ? 'Downloading…' : 'Download PDF'}
   </button>
   <button className="theme-btn" onClick={() => setDark(!dark)} aria-pressed={!dark} aria-label="Toggle color theme">
             {dark ? <Sun size={14} /> : <Moon size={14} />}
@@ -1172,14 +994,12 @@ function App() {
 
       <header className="cover" id="top">
         <div>
-          <Eyebrow index="01">Northbank Case study</Eyebrow>
-          <h1><Split>Northbank Case study</Split></h1>
-          <p>A review of the unsecured-loan refinance funnel — where it converts, where it leaks, and where next quarter’s product effort should go.</p>
+          <Eyebrow index="01">Northbank case study</Eyebrow>
+          <h1><Split>Northbank case study</Split></h1>
+          <p>A review of the unsecured-loan refinance funnel: where the funnel works, where customers drop off, and what to prioritise next.</p>
           <div className="cover-meta">
-            <b>14 Sept 2026</b>
-            <span>Cohorts <strong>Mar–Jun 2026, matured</strong></span>
-            <span>Base <strong>40,000 offers</strong></span>
-            <span>For <strong>Lendable</strong></span>
+            <b>15 Sept 2026</b>
+            <span>By <strong>Samuel Awonuga</strong></span>
           </div>
           <div className="scroll-cue"><i />Scroll to read</div>
         </div>
