@@ -187,10 +187,15 @@ const DOING_WELL = [
 ];
 
 const OPPORTUNITIES = [
-  { n: '01', title: 'Offer reach', detail: '62% never opened. 24,815 lost; largest observed leak. Apply rate halves at every repeat offer; 13.6% down to 2.0%.' },
-  { n: '02', title: 'Offer value', detail: '12,267 viewers do not apply; total-cost saving is associated with higher view → apply.' },
-  { n: '03', title: 'Application completion', detail: '39% never complete identity and income checks.' },
-  { n: '04', title: 'Settlement verification', detail: '358 customers drop after quote upload; root cause requires investigation (e.g. is lender supported?)' },
+  {
+    n: '01', title: 'Reach and engagement', detail: <><strong>Offer reach</strong><br />62% never opened. 24,815 lost; largest observed leak.<br /><br /><strong>Repeat-offer policy</strong><br />Apply rate halves at every repeat offer; 13.6% down to 2.0%.</>,
+  },
+  {
+    n: '02', title: 'Proposition & intent', detail: <><strong>Offer value</strong><br />12,267 viewers do not apply; total-cost saving is associated with higher view → apply.</>,
+  },
+  {
+    n: '03', title: 'Conversion and servicing', detail: <><strong>Application completion</strong><br />39% never complete identity and income checks.<br /><br /><strong>Settlement verification</strong><br />358 customers drop after quote upload; root cause requires investigation (e.g. is lender supported?)</>,
+  },
 ];
 
 const CHANNEL_ROWS = [
@@ -578,7 +583,6 @@ function Verdict() {
         <Reveal className="verdict-col watch" delay={100}>
           <div className="verdict-col-head">
             <h3>Could be improved</h3>
-            <span>4 areas to address</span>
           </div>
           {OPPORTUNITIES.map((o) => (
             <div className="verdict-item" key={o.n}>
